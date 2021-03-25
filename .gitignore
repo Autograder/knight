@@ -1,0 +1,16 @@
+# File name: .dockerignore
+# Author: Queues Team
+# Description: Includes the files to be ignored by git.
+
+# Backend
+*.pyc
+__pycache__
+.DS_Store
+*.dSYM
+*.sw*
+Dockerfile.prod
+.env.prod
+.env.prod.db
+docker-compose.prod.yml
+venv/
+*.log

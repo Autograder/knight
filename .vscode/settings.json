@@ -1,0 +1,11 @@
+/* File name: settings.json
+ * Author: Queues Team
+ * Description: Includes settings so VSCode doesn't yell at us.
+ */
+
+{
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": false,
+  "git.ignoreLimitWarning": true,
+}
