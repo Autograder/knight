@@ -1,3 +1,7 @@
+# File name: Dockerfile
+# Author: Queues Team
+# Description: Fires up the frontend.
+
 FROM node:12.18.3
 
 WORKDIR /app

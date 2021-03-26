@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# File name: init-letsencrypt.sh
+# Author: Queues Team
+# Description: Adds SSL certification when site is in production.
+
 if ! [ -x "$(command -v docker-compose)" ]; then
   echo 'Error: docker-compose is not installed.' >&2
   exit 1

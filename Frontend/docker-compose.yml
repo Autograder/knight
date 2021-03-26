@@ -1,3 +1,7 @@
+# File name: docker-compose.yml
+# Author: Queues Team
+# Description: Defines the containers to be used when running docker-compose. 
+
 version: '3.7'
 
 services:
