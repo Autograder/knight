@@ -1,6 +1,6 @@
 /* File name: server.js
  * Author: Queues Team, @nouryehia
- * Description: Contains all of our HTTP requests
+ * Description: Contains all of our HTTP requests.
  */
 
 import api from "./config"
