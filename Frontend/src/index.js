@@ -1,0 +1,11 @@
+/* File name: index.js
+ * Author: Queues Team
+ * Description: Entrypoint for Frontend. Delegates to App.
+ */
+
+import App from "./app";
+import React from "react";
+import ReactDOM from "react-dom";
+import { BrowserRouter as Router } from "react-router-dom";
+
+ReactDOM.render(<Router><App /></Router>, document.getElementById("root"));
