@@ -70,6 +70,28 @@ CREATE TABLE "Section" (
 Tables used by Autograder only
 *******************************************************************************/
 
+CREATE TABLE "SeatingLayouts" (
+	"id" serial NOT NULL,
+	"location" varchar(255) NOT NULL,
+	"seats" TEXT,
+	"count" integer,
+	CONSTRAINT "SeatingLayouts_pk" PRIMARY KEY ("id")
+) WITH (
+  OIDS=FALSE
+);
+
+CREATE TABLE "AssignedSeats" (
+	"id" serial NOT NULL,
+	"assignment_name" varchar(255) NOT NULL UNIQUE,
+	"layout_id" bigserial NOT NULL,
+	"section_id" bigserial NOT NULL,
+	"course_id" bigserial NOT NULL,
+	"seat_assignments" TEXT,
+	CONSTRAINT "AssignedSeats_pk" PRIMARY KEY ("id")
+) WITH (
+  OIDS=FALSE
+);
+
 /*******************************************************************************
 Tables used by Queues only
 *******************************************************************************/
@@ -235,6 +257,10 @@ ALTER TABLE "NewsFeedPost" ADD CONSTRAINT "NewsFeedPost_fk1" FOREIGN KEY ("queue
 
 ALTER TABLE "TicketFeedback" ADD CONSTRAINT "TicketFeedback_fk0" FOREIGN KEY ("ticket_id") REFERENCES "Ticket"("id");
 
+ALTER TABLE "AssignedSeats" ADD CONSTRAINT "AssignedSeats_fk0" FOREIGN KEY ("layout_id") REFERENCES "SeatingLayouts"("id");
+ALTER TABLE "AssignedSeats" ADD CONSTRAINT "AssignedSeats_fk1" FOREIGN KEY ("section_id") REFERENCES "Section"("id");
+ALTER TABLE "AssignedSeats" ADD CONSTRAINT "AssignedSeats_fk2" FOREIGN KEY ("course_id") REFERENCES "Course"("id");
+
 /*******************************************************************************
 Test Data
 *******************************************************************************/
@@ -258,3 +284,7 @@ INSERT INTO "EnrolledCourse" (user_id, role, section_id, course_id, status, cour
 INSERT INTO "EnrolledCourse" (user_id, role, section_id, course_id, status, course_short_name) VALUES (2, 1, 1, 1, 0, 'T1'); -- Admin
 INSERT INTO "EnrolledCourse" (user_id, role, section_id, course_id, status, course_short_name) VALUES (3, 3, 1, 1, 0, 'T1'); 
 INSERT INTO "EnrolledCourse" (user_id, role, section_id, course_id, status, course_short_name) VALUES (2, 3, 2, 2, 0, 'T2'); -- Grader
+
+/* Just a dummy entry for now until the way we save seat arrangements is settled */
+INSERT INTO "SeatingLayouts" (location, seats, count) VALUES ('zoom', '["couch left", "couch middle", "couch right"]', 300);
+INSERT INTO "AssignedSeats" (assignment_name, layout_id, section_id, course_id, seat_assignments) VALUES ('Test Course Final', 1, 1, 1, '{"couch left":1, "couch middle":3, "couch right":2}');
