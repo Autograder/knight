@@ -27,6 +27,9 @@ const useStyles = makeStyles((theme) => ({
         WebkitUserSelect: "none",
         msUserSelect: "none",
     },
+    error: {
+        backgroundColor: "red",
+    },
     assignSeat: {
         borderRadius: "5px",
         margin: "3px",

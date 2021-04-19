@@ -395,6 +395,33 @@ export default function Seating() {
         setCols(newCols);
     }
 
+    function markDuplicates(oldInfo) {
+        let info = [...oldInfo];
+        let seatLabels = {};
+
+        for(let i=0; i < rows; i++) {
+            for(let j=0; j < cols; j++) {
+                let seatLabel = info[i][j].label;
+                info[i][j].error = false;
+
+                if(seatLabel === '') {
+                    continue;
+                } else if(seatLabels[seatLabel] !== undefined) {
+                    seatLabels[seatLabel].push([i, j]);
+
+                    for(let k=0; k < seatLabels[seatLabel].length; k++) {
+                        let [x, y] = seatLabels[seatLabel][k];
+                        info[x][y].error = true;
+                    }
+                } else {
+                    seatLabels[seatLabel] = [[i, j]];
+                }
+            }
+        }
+
+        return info;
+    }
+
     return (
         <div className={classes.root}>
             <ThemeProvider theme={theme}>
@@ -419,7 +446,7 @@ export default function Seating() {
                 <br></br>
                 <SeatLayout
                   rows={rows} cols={cols} assignment={assignment}
-                  seatInfo={seatInfo}
+                  seatInfo={markDuplicates(seatInfo)}
                   handleMouseDown={handleMouseDown}
                   handleMouseUp={handleMouseUp}
                   handleMouseOver={handleMouseOver}

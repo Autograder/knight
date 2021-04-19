@@ -28,7 +28,9 @@ export default function SeatLayout(props) {
             } else {
                 className += ` ${props.selected.has(`${i} ${j}`) ? classes.layoutSelected : classes.layoutUnselected}`;
 
-                if(!seatInfo.label) {
+                if(seatInfo.error) {
+                    className += ` ${classes.error}`;
+                } else if(!seatInfo.label) {
                     className += ` ${classes.layoutBlank}`;
                 } else if(seatInfo.broken) {
                     className += ` ${classes.layoutBroken}`;
