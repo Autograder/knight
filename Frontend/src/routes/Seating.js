@@ -31,6 +31,7 @@ export default function Seating() {
     const [seatType, setSeatType] = useState('');
     const [broken, setBroken] = useState('');
     const [label, setLabel] = useState('');
+    const [rowLabel, setRowLabel] = useState('');
     const [mirrors, setMirrors] = useState([]);
 
     function handleMouseDown(event, i, j) {
@@ -250,6 +251,57 @@ export default function Seating() {
         setSeatInfo(newInfo);
     }
 
+    function autoRowLabel() {
+        let seats = [];
+        let row;
+
+        for(let seatCoords of selected) {
+            let [i, j] = seatCoords.split(' ');
+
+            row = i;
+            seats.push(j);
+        }
+        
+        let mirrorNumbers = mirrors.includes("numbers");
+        
+        function sortCols(firstEl, secondEl) {
+            if(mirrorNumbers) {
+                return Number(secondEl) - Number(firstEl);
+            } else {
+                return Number(firstEl) - Number(secondEl);
+            }
+        }
+
+        seats.sort(sortCols);
+
+        let newInfo = [...seatInfo];
+        for(let i=0; i < seats.length; i++) {
+            let seat = newInfo[row][seats[i]];
+            seat.label = `${rowLabel}${i + 1}`;
+            seat.left = false;
+            seat.broken = false;
+        }
+
+        setSeatInfo(newInfo);
+        setRowLabel('');
+    }
+
+    function selectedIsSingleRow() {
+        let row = undefined;
+        for(let seatCoords of selected) {
+            // eslint-disable-next-line
+            let [i, j] = seatCoords.split(' ');
+
+            if(row === undefined) {
+                row = i;
+            } else if (row !== i) {
+                row = null;
+            }
+        }
+
+        return row;
+    }
+
     function addRows() {
         let newInfo = [...seatInfo];
         let newRows = 5;
@@ -400,21 +452,45 @@ export default function Seating() {
                     <Grid container item xs spacing={2}>
                         {selected.size > 1 ?
                         <Grid container item direction="column">
-                            <Grid item>
-                                <InputLabel id="mirror-label">Reflect</InputLabel>
-                                <ToggleButtonGroup value={mirrors} onChange={(e, m) => setMirrors(m)}>
-                                    <ToggleButton value="numbers">
-                                        Numbers
-                                    </ToggleButton>
-                                    <ToggleButton value="rows">
-                                        Rows
-                                    </ToggleButton>
-                                </ToggleButtonGroup>
-                            </Grid>
-                            <Grid item>
-                                <InputLabel id="autolabel-label">Auto Label</InputLabel>
-                                <Button variant="contained" onClick={autoLabel}>Auto Label</Button>
-                            </Grid>
+                            {!selectedIsSingleRow() ?
+                            <React.Fragment>
+                                <Grid item>
+                                    <InputLabel id="mirror-label">Reflect</InputLabel>
+                                    <ToggleButtonGroup value={mirrors} onChange={(e, m) => setMirrors(m)}>
+                                        <ToggleButton value="numbers">
+                                            Numbers
+                                        </ToggleButton>
+                                        <ToggleButton value="rows">
+                                            Rows
+                                        </ToggleButton>
+                                    </ToggleButtonGroup>
+                                </Grid>
+                                <Grid item>
+                                    <InputLabel id="autolabel-label">Auto Label</InputLabel>
+                                    <Button variant="contained" onClick={autoLabel}>Auto Label</Button>
+                                </Grid>
+                            </React.Fragment>
+                            :
+                            <React.Fragment>
+                                <Grid container item spacing={2}>
+                                    <Grid item>
+                                        <InputLabel id="mirror-label">Reflect</InputLabel>
+                                        <ToggleButtonGroup value={mirrors} onChange={(e, m) => setMirrors(m)}>
+                                            <ToggleButton value="numbers">
+                                                Numbers
+                                            </ToggleButton>
+                                        </ToggleButtonGroup>
+                                    </Grid>
+                                    <Grid item>
+                                        <TextField label="Row Label" value={rowLabel} onChange={(e) => setRowLabel(e.target.value)}/>
+                                    </Grid>
+                                </Grid>
+                                <Grid item>
+                                    <InputLabel id="autolabel-label">Auto Label</InputLabel>
+                                    <Button variant="contained" onClick={autoRowLabel}>Auto Label</Button>
+                                </Grid>
+                            </React.Fragment>
+                            }
                         </Grid>
                         :
                         <Grid item>
