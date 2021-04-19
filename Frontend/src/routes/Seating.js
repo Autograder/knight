@@ -61,32 +61,32 @@ export default function Seating() {
         setSelection(newSelection);
         mouseDownCoords = null;
 
-        let newType = null;
-        let newBroken = null;
-        let newLabel = null;
+        let newType = undefined;
+        let newBroken = undefined;
+        let newLabel = undefined;
         for(let seatCoords of newSelected) {
             let seat = decodeSelect(seatCoords);
 
-            if(newLabel === null) {
+            if(newLabel === undefined) {
                 newLabel = seat.label;
             }
 
-            if(newType === null) {
+            if(newType === undefined) {
                 newType = seat.left;
             } else if (seat.left !== newType) {
                 newType = '';
             }
 
-            if(newBroken === null) {
+            if(newBroken === undefined) {
                 newBroken = seat.broken;
             } else if (seat.broken !== newBroken) {
                 newBroken = '';
             }
         }
 
-        newType = newType === null ? '' : newType;
-        newBroken = newBroken === null ? '' : newBroken;
-        newLabel = newLabel === null ? '' : newLabel;
+        newType = newType === undefined ? '' : newType;
+        newBroken = newBroken === undefined ? '' : newBroken;
+        newLabel = newLabel === undefined ? '' : newLabel;
 
         invertSelection = false;
         setSeatType(newType);
