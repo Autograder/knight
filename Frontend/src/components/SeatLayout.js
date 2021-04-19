@@ -55,14 +55,14 @@ export default function SeatLayout(props) {
         }
 
         seats2D.push(
-            <Grid container item key={i}>
+            <Grid container item key={i} wrap="nowrap">
                 {row}
             </Grid>
         );
     }
 
     return (
-        <Grid container direction="column">
+        <Grid container direction="column" wrap="nowrap">
             {seats2D}
         </Grid>
     )

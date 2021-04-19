@@ -1,5 +1,4 @@
 import { makeStyles } from '@material-ui/core/styles';
-import { black } from 'material-ui/styles/colors';
 
 const useStyles = makeStyles((theme) => ({
     root : {
@@ -7,11 +6,15 @@ const useStyles = makeStyles((theme) => ({
         width : '100%',
         left: 0,
         right: 0,
-        color: black,
+        backgroundColor: "darkgrey",
+        
     },
     '@global': {
-        '#editor .MuiFormControl-root': {
+        '.MuiFormControl-root': {
             width: "100%",
+        },
+        '#menu- .MuiPaper-root': {
+            color: "black",
         },
     },
     seat: {
