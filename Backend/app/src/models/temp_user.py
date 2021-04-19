@@ -15,7 +15,7 @@ class User(db.Model):
     __tablename__ = 'Users'  # Name of table in database
 
     # Database fields
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    user_id = db.Column(db.Integer, primary_key=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
@@ -34,6 +34,15 @@ class User(db.Model):
     def save(self) -> None:
         db.session.commit()
 
+    # Method name: update_first_name
+    # Author: @yixuan
+    # Description: Add a user to the db
+    # Params: name - string to replace the current first_name
+    # Returns: None
+    def update_first_name(self, name: str):
+        self.first_name = name
+        self.save()
+
     # Method name: get_user_by_id
     # Author: @nouryehia
     # Description: Uses database id to retrieve a user from database.
@@ -43,4 +52,21 @@ class User(db.Model):
     # - None otherwise
     @staticmethod
     def get_user_by_id(user_id: int) -> Optional[User]:
-        return User.query.filter_by(id=user_id).first()
+        return User.query.filter_by(user_id=user_id).first()
+
+    # Method name: add_user
+    # Author: @yixuan
+    # Description: Add a user to the db
+    # Params: ...
+    # Returns:
+    # - True for creating a user
+    @staticmethod
+    def add_user(email: str, first_name: str,
+                 last_name: str, password: str, pid: str,
+                 urole: int) -> bool:
+        user = User(email=email, first_name=first_name,
+                    last_name=last_name,
+                    password=password, pid=pid, urole=urole)
+        db.session.add(user)
+        user.save()
+        return True
