@@ -18,17 +18,14 @@ const useStyles = makeStyles((theme) => ({
         },
     },
     seat: {
-        height: "40px",
-        width: "40px",
+        height: "2em",
+        width: "2em",
         textAlign: "center",
-        lineHeight: "40px",
+        lineHeight: "2em",
         userSelect: "none",
         MozUserSelect: "none",
         WebkitUserSelect: "none",
         msUserSelect: "none",
-    },
-    error: {
-        backgroundColor: "red",
     },
     assignSeat: {
         borderRadius: "5px",
@@ -47,6 +44,9 @@ const useStyles = makeStyles((theme) => ({
     },
     layoutSeat: {
         backgroundColor: "white",
+    },
+    layoutError: {
+        backgroundColor: "red",
     },
     layoutLeftSeat: {
         backgroundColor: "yellow",

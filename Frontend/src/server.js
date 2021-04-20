@@ -17,7 +17,19 @@ const server = {
 	getName(user_id) {
 		const params = {user_id: user_id}
 		return api.get("user/get_name", {params: params})
-	}
+	},
+
+     getLayouts() {
+          return api.get("seating_layout/get_all");
+     },
+
+     addLayout(layout) {
+          return api.post("seating_layout/add", layout);
+     },
+
+     updateLayout(layout) {
+          return api.put("seating_layout/update", layout);
+     }
 }
 
 export default server;

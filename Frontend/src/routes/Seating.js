@@ -2,9 +2,10 @@ import OurTheme from "../style/Theme";
 import Styles from "../style/SeatingStyle";
 import { ThemeProvider } from "@material-ui/styles";
 import { Grid, TextField, MenuItem, Button, InputLabel } from "@material-ui/core";
-import { ToggleButton, ToggleButtonGroup } from '@material-ui/lab';
-import React, { useState } from "react";
+import { ToggleButton, ToggleButtonGroup, Alert } from '@material-ui/lab';
+import React, { useState, useEffect } from "react";
 import SeatLayout from "../components/SeatLayout";
+import server from "../server"
 
 let initSeatInfo = [];
 for(let i=0; i < 15; i++) {
@@ -21,11 +22,14 @@ export default function Seating() {
     const classes = Styles.useStyles();
     const theme = OurTheme.theme;
 
+    // Seat Layout States
     const [seatInfo, setSeatInfo] = useState(initSeatInfo);
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
     // eslint-disable-next-line
     const [assignment, setAssignment] = useState(undefined);
+
+    // Editor States
     const [selected, setSelected] = useState(new Set());
     const [selection, setSelection] = useState(new Set());
     const [seatType, setSeatType] = useState('');
@@ -33,6 +37,63 @@ export default function Seating() {
     const [label, setLabel] = useState('');
     const [rowLabel, setRowLabel] = useState('');
     const [mirrors, setMirrors] = useState([]);
+
+    // Save States
+    const [hasError, setHasError] = useState(false);
+    const [unsaved, setUnsaved] = useState(false);
+    const [layouts, setLayouts] = useState([]);
+    const [selectedLayout, setSelectedLayout] = useState('');
+    const [location, setLocation] = useState('');
+    const [seatCount, setSeatCount] = useState('');
+
+    function clearEditorStates() {
+        setSelected(new Set());
+        setSelection(new Set());
+        setSeatType('');
+        setBroken('');
+        setLabel('');
+        setRowLabel('');
+        setMirrors([]);
+    }
+
+    useEffect(() => {
+        let newInfo = [...seatInfo];
+        let seatLabels = {};
+        let newHasError = false;
+        let newCount = 0;
+
+        for(let i=0; i < newInfo.length; i++) {
+            for(let j=0; j < newInfo[0].length; j++) {
+                let seatLabel = newInfo[i][j].label;
+                delete newInfo[i][j].error;
+
+                if(seatLabel === '') {
+                    continue;
+                } else if(seatLabels[seatLabel] !== undefined) {
+                    seatLabels[seatLabel].push([i, j]);
+
+                    for(let k=0; k < seatLabels[seatLabel].length; k++) {
+                        let [x, y] = seatLabels[seatLabel][k];
+                        newInfo[x][y].error = true;
+                        newHasError = true;
+                    }
+                } else {
+                    seatLabels[seatLabel] = [[i, j]];
+                }
+
+                newCount++;
+            }
+        }
+
+        setSeatCount(newCount);
+        setHasError(newHasError);
+    }, [seatInfo]);
+
+
+
+    /*
+    Mouse Controls
+    */
 
     function handleMouseDown(event, i, j) {
         mouseDownCoords = [i,j];
@@ -60,38 +121,7 @@ export default function Seating() {
         setSelected(newSelected);
         setSelection(newSelection);
         mouseDownCoords = null;
-
-        let newType = undefined;
-        let newBroken = undefined;
-        let newLabel = undefined;
-        for(let seatCoords of newSelected) {
-            let seat = decodeSelect(seatCoords);
-
-            if(newLabel === undefined) {
-                newLabel = seat.label;
-            }
-
-            if(newType === undefined) {
-                newType = seat.left;
-            } else if (seat.left !== newType) {
-                newType = '';
-            }
-
-            if(newBroken === undefined) {
-                newBroken = seat.broken;
-            } else if (seat.broken !== newBroken) {
-                newBroken = '';
-            }
-        }
-
-        newType = newType === undefined ? '' : newType;
-        newBroken = newBroken === undefined ? '' : newBroken;
-        newLabel = newLabel === undefined ? '' : newLabel;
-
         invertSelection = false;
-        setSeatType(newType);
-        setBroken(newBroken);
-        setLabel(newLabel);
     }
 
     function handleMouseOver(i, j) {
@@ -145,6 +175,43 @@ export default function Seating() {
         return arr[i][j];
     }
 
+    useEffect(() => {
+        let newType = undefined;
+        let newBroken = undefined;
+        let newLabel = undefined;
+        for(let seatCoords of combine(selected, selection)) {
+            let seat = decodeSelect(seatCoords);
+
+            if(newLabel === undefined) {
+                newLabel = seat.label;
+            }
+
+            if(newType === undefined) {
+                newType = seat.left;
+            } else if (seat.left !== newType) {
+                newType = '';
+            }
+
+            if(newBroken === undefined) {
+                newBroken = seat.broken;
+            } else if (seat.broken !== newBroken) {
+                newBroken = '';
+            }
+        }
+
+        newType = newType === undefined ? '' : newType;
+        newBroken = newBroken === undefined ? '' : newBroken;
+        newLabel = newLabel === undefined ? '' : newLabel;
+
+        setSeatType(newType);
+        setBroken(newBroken);
+        setLabel(newLabel);
+    }, [selected, selection]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    /*
+    Editor Functions
+    */
+
     function updateSeatType(event) {
         let newType = event.target.value;
         let newInfo = [...seatInfo];
@@ -156,6 +223,7 @@ export default function Seating() {
 
         setSeatType(newType);
         setSeatInfo(newInfo);
+        setUnsaved(true);
     }
     
     function updateSeatBroken(event) {
@@ -169,6 +237,7 @@ export default function Seating() {
 
         setBroken(newBroken);
         setSeatInfo(newInfo);
+        setUnsaved(true);
     }
 
     function updateLabel(event) {
@@ -180,6 +249,7 @@ export default function Seating() {
 
         setSeatInfo(newInfo);
         setLabel(newLabel);
+        setUnsaved(true);
     }
 
     function clearLabel(event) {
@@ -193,6 +263,7 @@ export default function Seating() {
 
         setSeatInfo(newInfo);
         setLabel(newLabel);
+        setUnsaved(true);
     }
 
     function autoLabel() {
@@ -249,6 +320,7 @@ export default function Seating() {
         }
 
         setSeatInfo(newInfo);
+        setUnsaved(true);
     }
 
     function autoRowLabel() {
@@ -284,11 +356,12 @@ export default function Seating() {
 
         setSeatInfo(newInfo);
         setRowLabel('');
+        setUnsaved(true);
     }
 
-    function selectedIsSingleRow() {
+    function selectIsSingleRow() {
         let row = undefined;
-        for(let seatCoords of selected) {
+        for(let seatCoords of combine(selected, selection)) {
             // eslint-disable-next-line
             let [i, j] = seatCoords.split(' ');
 
@@ -318,6 +391,7 @@ export default function Seating() {
 
         setSeatInfo(newInfo);
         setRows(rows + newRows);
+        setUnsaved(true);
     }
 
     function addCols() {
@@ -332,6 +406,7 @@ export default function Seating() {
 
         setSeatInfo(newInfo);
         setCols(cols + newCols);
+        setUnsaved(true);
     }
 
     function trimWhiteSpace() {
@@ -393,60 +468,142 @@ export default function Seating() {
         setSeatInfo(newInfo);
         setRows(newRows);
         setCols(newCols);
+        setUnsaved(true);
     }
 
-    function markDuplicates(oldInfo) {
-        let info = [...oldInfo];
-        let seatLabels = {};
 
-        for(let i=0; i < rows; i++) {
-            for(let j=0; j < cols; j++) {
-                let seatLabel = info[i][j].label;
-                info[i][j].error = false;
 
-                if(seatLabel === '') {
-                    continue;
-                } else if(seatLabels[seatLabel] !== undefined) {
-                    seatLabels[seatLabel].push([i, j]);
+    /*
+    Save Functions
+    */
 
-                    for(let k=0; k < seatLabels[seatLabel].length; k++) {
-                        let [x, y] = seatLabels[seatLabel][k];
-                        info[x][y].error = true;
-                    }
-                } else {
-                    seatLabels[seatLabel] = [[i, j]];
-                }
+    useEffect(() => {
+        server.getLayouts()
+            .then((response) => {
+                let newLayouts = response.data.result;
+                setLayouts(newLayouts);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }, []);
+
+    function layoutsToMenuItems() {
+        let menuItems = [];
+
+        for(let i=0; i < layouts.length; i++) {
+            menuItems.push(
+                <MenuItem value={i} key={layouts[i].id}>{layouts[i].location}</MenuItem>
+            );
+        }
+
+        return menuItems;
+    }
+
+    function packageToLayoutJSON() {
+        return {
+            location: location,
+            seats: JSON.stringify(seatInfo),
+            count: seatCount
+        };
+    }
+
+    function loadLayout() {
+        let layout = layouts[selectedLayout];
+
+        clearEditorStates();
+        
+        let newInfo = JSON.parse(layout.seats);
+        setLocation(layout.location);
+        setSeatInfo(newInfo);
+
+        setRows(newInfo.length);
+        setCols(newInfo[0].length);
+        setUnsaved(false);
+    }
+
+    useEffect(() => {
+        if(unsaved) {
+            window.onbeforeunload = () => "Unsaved work";
+        } else {
+            window.onbeforeunload = () => null;
+        }
+      }, [unsaved]);
+    
+    function findLayout() {
+        let layout;
+        for(let i=0; i < layouts.length; i++) {
+            if(layouts[i].location === location) {
+                layout = layouts[i];
             }
         }
 
-        return info;
+        return layout;
     }
+
+    function saveLayout() {
+        let layout = findLayout();
+
+        let func;
+        if(layout) {
+            func = server.updateLayout;
+        } else {
+            func = server.addLayout;
+        }
+
+        func(packageToLayoutJSON())
+            .then((response) => {
+                server.getLayouts()
+                    .then((response) => {
+                        let newLayouts = response.data.result;
+                        setLayouts(newLayouts);
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+        
+        setUnsaved(false);
+    }
+
+
 
     return (
         <div className={classes.root}>
             <ThemeProvider theme={theme}>
+                {hasError && <Alert severity="error">Current layout has seats with duplicate labels!</Alert>}
                 <Grid container id="save-system" spacing={2}>
                     <Grid item xs>
                         <TextField select
                             label="Layout"
+                            value={selectedLayout}
+                            onChange={(e) => setSelectedLayout(e.target.value)}
                         >
-                            <MenuItem>Option 1</MenuItem>
+                            {layoutsToMenuItems()}
                         </TextField>
                     </Grid>
                     <Grid item xs>
-                        <Button variant="contained">Load</Button>
+                        <Button variant="contained" onClick={loadLayout} disabled={selectedLayout === ''}>Load</Button>
                     </Grid>
                     <Grid item xs>
-                        <TextField label="Name"/>
+                        <TextField label="Name" value={location} onChange={(e) => setLocation(e.target.value)}/>
                     </Grid>
-                    <Grid item xs>
-                        <Button variant="contained">Save</Button>
+                    <Grid container spacing={2} item xs>
+                        <Grid item>
+                            <Button variant="contained" onClick={saveLayout} disabled={hasError}>{findLayout() ? "Update" : "Save"}</Button>
+                        </Grid>
+                        <Grid item>
+                            {unsaved && <Alert severity="warning">Unsaved work</Alert>}
+                        </Grid>
                     </Grid>
                 </Grid>
                 <br></br>
                 <SeatLayout
                   rows={rows} cols={cols} assignment={assignment}
-                  seatInfo={markDuplicates(seatInfo)}
+                  seatInfo={seatInfo}
                   handleMouseDown={handleMouseDown}
                   handleMouseUp={handleMouseUp}
                   handleMouseOver={handleMouseOver}
@@ -454,32 +611,10 @@ export default function Seating() {
                 />
                 <br></br>
                 <Grid container id="editor" spacing={2}>
-                    <Grid container item direction="column" xs>
-                        <Grid item>
-                            <TextField select
-                                label="Seat Type"
-                                value={seatType}
-                                onChange={updateSeatType}
-                            >
-                                <MenuItem value={true}>Left-Handed</MenuItem>
-                                <MenuItem value={false}>Right-Handed</MenuItem>
-                            </TextField>
-                        </Grid>
-                        <Grid item>
-                            <TextField select
-                                label="Seat Status"
-                                value={broken}
-                                onChange={updateSeatBroken}
-                            >
-                                <MenuItem value={true}>Broken</MenuItem>
-                                <MenuItem value={false}>Not Broken</MenuItem>
-                            </TextField>
-                        </Grid>
-                    </Grid>
                     <Grid container item xs spacing={2}>
-                        {selected.size > 1 ?
+                        {combine(selected, selection).size > 1 ?
                         <Grid container item direction="column">
-                            {!selectedIsSingleRow() ?
+                            {!selectIsSingleRow() ?
                             <React.Fragment>
                                 <Grid item>
                                     <InputLabel id="mirror-label">Reflect</InputLabel>
@@ -527,6 +662,28 @@ export default function Seating() {
                     </Grid>
                     <Grid item xs>
                         <Button variant="contained" onClick={clearLabel}>Clear Label</Button>
+                    </Grid>
+                    <Grid container item direction="column" xs>
+                        <Grid item>
+                            <TextField select
+                                label="Seat Type"
+                                value={seatType}
+                                onChange={updateSeatType}
+                            >
+                                <MenuItem value={true}>Left-Handed</MenuItem>
+                                <MenuItem value={false}>Right-Handed</MenuItem>
+                            </TextField>
+                        </Grid>
+                        <Grid item>
+                            <TextField select
+                                label="Seat Status"
+                                value={broken}
+                                onChange={updateSeatBroken}
+                            >
+                                <MenuItem value={true}>Broken</MenuItem>
+                                <MenuItem value={false}>Not Broken</MenuItem>
+                            </TextField>
+                        </Grid>
                     </Grid>
                     <Grid container item direction="column" xs>
                         <Grid item>
