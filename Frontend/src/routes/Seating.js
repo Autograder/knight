@@ -2,7 +2,6 @@ import OurTheme from "../style/Theme";
 import Styles from "../style/SeatingStyle";
 import { ThemeProvider } from "@material-ui/styles";
 import { Tabs, Tab } from "@material-ui/core";
-import {  } from '@material-ui/lab';
 import React, { useState } from "react";
 import LayoutEditor from "../components/LayoutEditor";
 import SeatAssign from "../components/SeatAssign";

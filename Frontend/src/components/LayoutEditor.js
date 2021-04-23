@@ -21,7 +21,7 @@ export default function LayoutEditor(props) {
     const classes = Styles.useStyles();
 
     // Seat Layout States
-    const [seatInfo, setSeatInfo] = useState(initSeatInfo);
+    const [seatInfo, trueSetSeatInfo] = useState(initSeatInfo);
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
 
@@ -42,18 +42,8 @@ export default function LayoutEditor(props) {
     const [seatCount, setSeatCount] = useState('');
     const [unsaved, setUnsaved] = useState(false);
 
-    function clearEditorStates() {
-        setSelected(new Set());
-        setSelection(new Set());
-        setSeatType('');
-        setBroken('');
-        setLabel('');
-        setRowLabel('');
-        setMirrors([]);
-    }
-
-    useEffect(() => {
-        let newInfo = [...seatInfo];
+    function setSeatInfo(oldInfo) {
+        let newInfo = [...oldInfo];
         let seatLabels = {};
         let newHasError = false;
         let newCount = 0;
@@ -81,9 +71,20 @@ export default function LayoutEditor(props) {
             }
         }
 
+        trueSetSeatInfo(newInfo);
         setSeatCount(newCount);
         setHasError(newHasError);
-    }, [seatInfo]);
+    }
+
+    function clearEditorStates() {
+        setSelected(new Set());
+        setSelection(new Set());
+        setSeatType('');
+        setBroken('');
+        setLabel('');
+        setRowLabel('');
+        setMirrors([]);
+    }
 
 
 
