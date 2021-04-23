@@ -1,6 +1,5 @@
 import OurTheme from "../style/Theme";
 import Styles from "../style/SeatingStyle";
-import { ThemeProvider } from "@material-ui/styles";
 import { Grid, TextField, MenuItem, Button, InputLabel } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup, Alert } from '@material-ui/lab';
 import React, { useState, useEffect } from "react";
@@ -18,16 +17,13 @@ for(let i=0; i < 15; i++) {
 let mouseDownCoords = null;
 let invertSelection = false;
 
-export default function LayoutEditor() {
+export default function LayoutEditor(props) {
     const classes = Styles.useStyles();
-    const theme = OurTheme.theme;
 
     // Seat Layout States
     const [seatInfo, setSeatInfo] = useState(initSeatInfo);
     const [rows, setRows] = useState(15);
     const [cols, setCols] = useState(15);
-    // eslint-disable-next-line
-    const [assignment, setAssignment] = useState(undefined);
 
     // Editor States
     const [selected, setSelected] = useState(new Set());
@@ -40,11 +36,11 @@ export default function LayoutEditor() {
 
     // Save States
     const [hasError, setHasError] = useState(false);
-    const [unsaved, setUnsaved] = useState(false);
     const [layouts, setLayouts] = useState([]);
     const [selectedLayout, setSelectedLayout] = useState('');
     const [location, setLocation] = useState('');
     const [seatCount, setSeatCount] = useState('');
+    const [unsaved, setUnsaved] = useState(false);
 
     function clearEditorStates() {
         setSelected(new Set());
@@ -488,6 +484,14 @@ export default function LayoutEditor() {
             });
     }, []);
 
+    useEffect(() => {
+        if(unsaved) {
+            window.onbeforeunload = () => "Unsaved work";
+        } else {
+            window.onbeforeunload = () => null;
+        }
+      }, [unsaved]);
+
     function layoutsToMenuItems() {
         let menuItems = [];
 
@@ -521,14 +525,6 @@ export default function LayoutEditor() {
         setCols(newInfo[0].length);
         setUnsaved(false);
     }
-
-    useEffect(() => {
-        if(unsaved) {
-            window.onbeforeunload = () => "Unsaved work";
-        } else {
-            window.onbeforeunload = () => null;
-        }
-      }, [unsaved]);
     
     function findLayout() {
         let layout;
@@ -570,6 +566,9 @@ export default function LayoutEditor() {
     }
 
 
+    if(props.hidden) {
+        return null;
+    }
 
     return (
         <div className={classes.editorMain}>
@@ -601,7 +600,7 @@ export default function LayoutEditor() {
             </Grid>
             <br></br>
             <SeatLayout
-                rows={rows} cols={cols} assignment={assignment}
+                rows={rows} cols={cols} assignment={false}
                 seatInfo={seatInfo}
                 handleMouseDown={handleMouseDown}
                 handleMouseUp={handleMouseUp}
