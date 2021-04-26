@@ -1,7 +1,11 @@
 Flask
+flask-login
 flask-api
 flask_cors
-flask-login
 flask_sqlalchemy
 psycopg2-binary
-python-dotenv
+gunicorn
+passlib
+pytz
+python-crontab
+python-dateutil
