@@ -65,6 +65,8 @@ class Section (db.Model):
         ret['section_id'] = self.section_id
         ret['course_id'] = self.course_id
         ret['section_name'] = self.section_name
+        
+        return ret
 
     # TODO: We dont need this method since section do not store students.
     '''
@@ -130,3 +132,13 @@ class Section (db.Model):
         """
         db.session.add(section)
         db.session.commit()
+    
+    @staticmethod
+    def find_all_in_course(course_id: int):
+        '''
+        Performs a database query by the course id.\n
+        Params: course_id\n
+        Returns: The list of sections under that course\n
+        @author: james-c-lars
+        '''
+        return Section.query.filter_by(course_id=course_id).all()

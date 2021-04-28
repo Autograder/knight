@@ -23,3 +23,17 @@ def create_section():
     Section.add_to_db(section)
 
     return jsonify({'reason': 'section created'}), 200
+
+@section_api_bp.route('/find_all_in_course', methods=['GET'])
+def find_all_in_course():
+    """
+    Route used to find all sections in a particular course by id.\n
+    @author james-c-lars
+    """
+
+    course_id = request.args.get('course_id', type=int)
+    s = [section.to_json() for section in Section.find_all_in_course(course_id)]
+    print(s.__repr__())
+
+    return jsonify({'reason': 'sections returned', \
+        'result': list(s)}), 200
