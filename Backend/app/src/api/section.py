@@ -33,7 +33,6 @@ def find_all_in_course():
 
     course_id = request.args.get('course_id', type=int)
     s = [section.to_json() for section in Section.find_all_in_course(course_id)]
-    print(s.__repr__())
 
     return jsonify({'reason': 'sections returned', \
         'result': list(s)}), 200
