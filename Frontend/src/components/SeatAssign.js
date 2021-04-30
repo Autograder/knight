@@ -131,7 +131,7 @@ export default function SeatAssign(props) {
         for(let i=0; i < newInfo.length; i++) {
             for(let j=0; j < newInfo[i].length; j++) {
                 if(newInfo[i][j].label) {
-                    newSeats.push(newInfo[i][j].label);
+                    newSeats.push(newInfo[i][j]);
                 }
             }
         }
@@ -151,7 +151,7 @@ export default function SeatAssign(props) {
         if(seats) {
             let newAssignment = {};
             for(let seat of seats) {
-                newAssignment[seat] = '';
+                newAssignment[seat.label] = '';
             }
             setAssignment(newAssignment);
         } else {
@@ -164,16 +164,17 @@ export default function SeatAssign(props) {
 
         function changeValue(e, i) {
             let newAssignment = {...assignment};
-            newAssignment[seats[i]] = e.target.value
+            newAssignment[seats[i].label] = e.target.value
             setAssignment(newAssignment);
         }
 
         for(let i=0; i < seats.length; i++) {
             items.push(
-                <Grid item key={seats[i]}>
+                <Grid item key={seats[i].label}>
                     <TextField
-                        label={seats[i]}
-                        value={assignment[seats[i]] ? assignment[seats[i]] : ''}
+                        label={seats[i].label}
+                        disabled={seats[i].broken}
+                        value={assignment[seats[i].label] ? assignment[seats[i].label] : ''}
                         onChange={(e) => {changeValue(e,i)}}
                     />
                 </Grid> 
@@ -232,7 +233,7 @@ export default function SeatAssign(props) {
                     <Button
                         variant="contained"
                         onClick={assignSeats}
-                        disabled={selectedSection === '' || selectedLayout === ''}
+                        disabled={selectedSection === '' || !seats}
                     >
                         Auto Assign Seats
                     </Button>
