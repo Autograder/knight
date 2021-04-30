@@ -12,6 +12,7 @@ from .src.api.assigned_seats import assigned_seats_api_bp as asapi
 from .src.api.course import course_api_bp as capi
 from .src.api.section import section_api_bp as sapi
 from .src.api.queue import queue_api_bp as qapi
+from .src.api.enrolled_course import enrolled_course_api_bp as eapi
 
 # Register blueprints
 app.register_blueprint(uapi, url_prefix="/api/users")
@@ -20,3 +21,4 @@ app.register_blueprint(asapi, url_prefix="/api/assigned_seats")
 app.register_blueprint(capi, url_prefix="/api/course")
 app.register_blueprint(sapi, url_prefix="/api/section")
 app.register_blueprint(qapi, url_prefix="/api/queue")
+app.register_blueprint(eapi, url_prefix="/api/enrolled_course")
