@@ -198,31 +198,32 @@ export default function SeatAssign(props) {
     return (
         <div className={classes.assignMain}>
             <Grid container spacing={2} direction="column">
-                <Grid item>
-                    <TextField select
-                        label="Course"
-                        value={selectedCourse}
-                        onChange={(e) => chooseCourse(e.target.value)}
-                    >
-                        {coursesToMenuItems()}
-                    </TextField>
-                </Grid>
-                <Grid item>
-                    <TextField select
-                        label="Section"
-                        value={selectedSection}
-                        onChange={(e) => chooseSection(e.target.value)}
-                        disabled={selectedCourse === ''}
-                    >
-                        {sectionsToMenuItems()}
-                    </TextField>
+                <Grid item container spacing={2}>
+                    <Grid item xs>
+                        <TextField select
+                            label="Course"
+                            value={selectedCourse}
+                            onChange={(e) => chooseCourse(e.target.value)}
+                        >
+                            {coursesToMenuItems()}
+                        </TextField>
+                    </Grid>
+                    <Grid item xs>
+                        <TextField select
+                            label="Section"
+                            value={selectedSection}
+                            onChange={(e) => chooseSection(e.target.value)}
+                            disabled={selectedCourse === ''}
+                        >
+                            {sectionsToMenuItems()}
+                        </TextField>
+                    </Grid>
                 </Grid>
                 <Grid item>
                     <TextField select
                         label="Layout"
                         value={selectedLayout}
                         onChange={(e) => chooseLayout(e.target.value)}
-                        disabled={selectedSection === ''}
                     >
                         {layoutsToMenuItems()}
                     </TextField>
@@ -239,7 +240,7 @@ export default function SeatAssign(props) {
             </Grid>
             <br />
             <SeatLayout
-                hidden={!Boolean(seatInfo)}
+                hidden={!seatInfo}
                 rows={rows} cols={cols} assignment={assignment}
                 seatInfo={seatInfo}
                 handleMouseDown={() => {}}
