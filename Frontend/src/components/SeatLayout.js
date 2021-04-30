@@ -5,6 +5,10 @@ import React from "react";
 export default function SeatLayout(props) {
     const classes = Styles.useStyles();
 
+    if(props.hidden) {
+        return null;
+    }
+
     let seats2D = [];
     for(let i=0; i < props.rows; i++) {
         let row = [];

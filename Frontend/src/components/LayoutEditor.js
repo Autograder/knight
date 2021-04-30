@@ -1,4 +1,3 @@
-import OurTheme from "../style/Theme";
 import Styles from "../style/SeatingStyle";
 import { Grid, TextField, MenuItem, Button, InputLabel } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup, Alert } from '@material-ui/lab';
@@ -36,11 +35,12 @@ export default function LayoutEditor(props) {
 
     // Save States
     const [hasError, setHasError] = useState(false);
-    const [layouts, setLayouts] = useState([]);
     const [selectedLayout, setSelectedLayout] = useState('');
     const [location, setLocation] = useState('');
     const [seatCount, setSeatCount] = useState('');
     const [unsaved, setUnsaved] = useState(false);
+    const layouts = props.layouts;
+    const updateLayouts = props.updateLayouts;
 
     function setSeatInfo(oldInfo) {
         let newInfo = [...oldInfo];
@@ -475,17 +475,6 @@ export default function LayoutEditor(props) {
     */
 
     useEffect(() => {
-        server.getLayouts()
-            .then((response) => {
-                let newLayouts = response.data.result;
-                setLayouts(newLayouts);
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-    }, []);
-
-    useEffect(() => {
         if(unsaved) {
             window.onbeforeunload = () => "Unsaved work";
         } else {
@@ -550,14 +539,7 @@ export default function LayoutEditor(props) {
 
         func(packageToLayoutJSON())
             .then((response) => {
-                server.getLayouts()
-                    .then((response) => {
-                        let newLayouts = response.data.result;
-                        setLayouts(newLayouts);
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                    });
+                updateLayouts();
             })
             .catch((err) => {
                 console.error(err);
@@ -608,7 +590,7 @@ export default function LayoutEditor(props) {
                 handleMouseOver={handleMouseOver}
                 selected={combine(selected, selection)}
             />
-            <br></br>
+            <br />
             <Grid container id="editor" spacing={2} wrap="nowrap">
                 <Grid container item xs spacing={2}>
                     {combine(selected, selection).size > 1 ?

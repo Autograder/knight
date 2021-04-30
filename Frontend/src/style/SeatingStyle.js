@@ -15,6 +15,13 @@ const useStyles = makeStyles((theme) => ({
         right: 0,
         backgroundColor: "darkgrey",
     },
+    assignMain : {
+        position : 'absolute',
+        width : '100%',
+        left: 0,
+        right: 0,
+        backgroundColor: "darkgrey",
+    },
     '@global': {
         '.MuiFormControl-root': {
             width: "100%",
