@@ -77,7 +77,12 @@ const useStyles = makeStyles((theme) => ({
         border: "1px solid black",
         padding: "3px",
 
-    }
+    },
+    frontBanner: {
+        width:"100%",
+        textAlign:"center",
+        backgroundColor:'silver',
+    },
 }));
 
 const e = {useStyles};

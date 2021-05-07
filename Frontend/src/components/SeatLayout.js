@@ -5,9 +5,10 @@ import React from "react";
 export default function SeatLayout(props) {
     const classes = Styles.useStyles();
 
-    if(props.hidden) {
-        return null;
-    }
+    let handleMouseDown = props.handleMouseDown !== undefined ? props.handleMouseDown : () => {};
+    let handleMouseUp = props.handleMouseUp !== undefined ? props.handleMouseUp : () => {};
+    let handleMouseOver = props.handleMouseOver !== undefined ? props.handleMouseOver : () => {};
+    let selected = props.selected !== undefined ? props.selected : new Set();
 
     let seats2D = [];
     for(let i=0; i < props.rows; i++) {
@@ -30,7 +31,7 @@ export default function SeatLayout(props) {
                     }
                 }
             } else {
-                className += ` ${props.selected.has(`${i} ${j}`) ? classes.layoutSelected : classes.layoutUnselected}`;
+                className += ` ${selected.has(`${i} ${j}`) ? classes.layoutSelected : classes.layoutUnselected}`;
 
                 if(seatInfo.error) {
                     className += ` ${classes.layoutError}`;
@@ -50,9 +51,9 @@ export default function SeatLayout(props) {
                     <Box
                       id={`${i},${j}`}
                       className={className}
-                      onMouseDown={(event) => props.handleMouseDown(event, i, j)}
-                      onMouseUp={(event) => props.handleMouseUp(event, i, j)}
-                      onMouseOver={(event) => props.handleMouseOver(i,j)}
+                      onMouseDown={(event) => handleMouseDown(event, i, j)}
+                      onMouseUp={(event) => handleMouseUp(event, i, j)}
+                      onMouseOver={(event) => handleMouseOver(i,j)}
                     >
                         {seatInfo.label}
                     </Box>
@@ -67,9 +68,17 @@ export default function SeatLayout(props) {
         );
     }
 
+    if(props.hidden) {
+        return null;
+    }
+    
     return (
-        <Grid container direction="column" wrap="nowrap">
-            {seats2D}
-        </Grid>
+        <React.Fragment>
+            <div className={classes.frontBanner}>Front</div>
+            <Grid container direction="column" wrap="nowrap" alignItems="center" justify="center">
+                {seats2D}
+            </Grid>
+            <div className={classes.frontBanner}>Back</div>
+        </React.Fragment>
     )
 }

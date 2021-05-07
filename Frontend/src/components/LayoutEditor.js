@@ -37,7 +37,7 @@ export default function LayoutEditor(props) {
     const [hasError, setHasError] = useState(false);
     const [selectedLayout, setSelectedLayout] = useState('');
     const [location, setLocation] = useState('');
-    const [seatCount, setSeatCount] = useState('');
+    const [seatCount, setSeatCount] = useState(0);
     const [unsaved, setUnsaved] = useState(false);
     const layouts = props.layouts;
     const updateLayouts = props.updateLayouts;
@@ -67,7 +67,7 @@ export default function LayoutEditor(props) {
                     seatLabels[seatLabel] = [[i, j]];
                 }
 
-                newCount++;
+                if(!newInfo[i][j].broken) newCount++;
             }
         }
 
@@ -204,6 +204,8 @@ export default function LayoutEditor(props) {
         setBroken(newBroken);
         setLabel(newLabel);
     }, [selected, selection]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
 
     /*
     Editor Functions
@@ -494,7 +496,7 @@ export default function LayoutEditor(props) {
         return menuItems;
     }
 
-    function packageToLayoutJSON() {
+    function toJSON() {
         return {
             location: location,
             seats: JSON.stringify(seatInfo),
@@ -537,7 +539,7 @@ export default function LayoutEditor(props) {
             func = server.addLayout;
         }
 
-        func(packageToLayoutJSON())
+        func(toJSON())
             .then((response) => {
                 updateLayouts();
             })
@@ -581,7 +583,7 @@ export default function LayoutEditor(props) {
                     </Grid>
                 </Grid>
             </Grid>
-            <br></br>
+            <br />
             <SeatLayout
                 rows={rows} cols={cols} assignment={false}
                 seatInfo={seatInfo}

@@ -50,6 +50,37 @@ const server = {
           return api.put("seating_layout/update", layout);
      },
 
+	/* Method name: getSeatAssignments
+	 * Author: @james-c-lars
+      * Description: Gets all seat assignments
+      * Param: None
+      * Returns:
+      *  { "reason": ..., "result": < list of Seat Assignments >}
+      */
+     getSeatAssignments() {
+          return api.get("assigned_seats/get_all");
+     },
+
+	/* Method name: addSeatAssignment
+	 * Author: @james-c-lars
+      * Description: Creates a Seat Assignment
+      * Param: Seat Assignment
+      * Returns: { "reason": ... }
+      */
+     addSeatAssignment(assignment) {
+          return api.post("assigned_seats/add", assignment);
+     },
+
+	/* Method name: updateSeatAssignment
+	 * Author: @james-c-lars
+      * Description: Updates a Seat Assignment
+      * Param: Seat Assignment
+      * Returns: { "reason": ... }
+      */
+     updateSeatAssignment(assignment) {
+          return api.put("assigned_seats/update", assignment);
+     },
+
      /* Method name: getCourses
 	 * Author: @james-c-lars
       * Description: Gets all courses
@@ -64,25 +95,25 @@ const server = {
      /* Method name: getSectionsInCourse
 	 * Author: @james-c-lars
       * Description: Gets all sections in a course
-      * Param: Course
+      * Param: Course.id
       * Returns:
       *  { "reason": ..., "result": < list of Sections >}
       */
-     getSectionsInCourse(course) {
-          const params = {course_id: course.id};
+     getSectionsInCourse(course_id) {
+          const params = {course_id: course_id};
           return api.get("section/find_all_in_course", {params: params});
      },
 
      /* Method name: getUsersInSection
 	 * Author: @james-c-lars
       * Description: Gets all user in a Section
-      * Param: Course, Section
+      * Param: Course.id, Section.id
       * Returns:
       *  { "reason": ..., "result": < list of the form {"user_info": < User >,
       *             "enrolled_user_info": < EnrolledCourse > } > }
       */
-     getUsersInSection(course, section) {
-          const params = {course_id: course.id, section_id: section.id};
+     getUsersInSection(course_id, section_id) {
+          const params = {course_id: course_id, section_id: section_id};
           return api.get("enrolled_course/get_user_in_section", {params: params});
      },
 }
