@@ -26,8 +26,14 @@ export default function SeatLayout(props) {
                     
                     if(props.assignment[seatInfo.label]) {
                         className += ` ${classes.assignFilled}`;
+                    } else if(seatInfo.broken) {
+                        className += ` ${classes.assignBroken}`;
                     } else {
                         className += ` ${classes.assignEmpty}`;
+                    }
+
+                    if(seatInfo.left) {
+                        className += ` ${classes.assignLeft}`;
                     }
                 }
             } else {

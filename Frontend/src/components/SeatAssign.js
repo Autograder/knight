@@ -206,7 +206,7 @@ export default function SeatAssign(props) {
             items.push(
                 <Grid item key={seats[i].label}>
                     <TextField
-                        label={seats[i].label}
+                        label={`${seats[i].label}${seats[i].broken ? ' (B)' : seats[i].left ? ' (L)' : ''}`}
                         disabled={seats[i].broken}
                         value={assignment[seats[i].label] ? assignment[seats[i].label] : ''}
                         onChange={(e) => {changeValue(e,i)}}
@@ -266,7 +266,9 @@ export default function SeatAssign(props) {
         for(let i=0; i < 35; i++) {
             students.push({
                 fname: "Student",
-                lname: String(i)
+                lname: String(i),
+                pid: `A156${13+i}`,
+                email: `s${i}@ucsd.edu`,
             });
         }
         // ==================================================
@@ -381,7 +383,7 @@ export default function SeatAssign(props) {
                 while(j < clump.length && tempStudents.length > 0) {
                     if(!clump[j].broken) {
                         let student = tempStudents.pop();
-                        newAssignment[clump[j].label] = `${student.fname} ${student.lname}`;
+                        newAssignment[clump[j].label] = student.pid;
                         j += clumpObj.spacing;
                     } else {
                         j += 1;

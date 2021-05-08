@@ -51,6 +51,12 @@ const useStyles = makeStyles((theme) => ({
     assignEmpty: {
         backgroundColor: "indianred",
     },
+    assignLeft: {
+        border: "1px solid lightgrey",
+    },
+    assignBroken: {
+        backgroundColor: "firebrick",
+    },
     assignBlank: {
         backgroundColor: "rgba(0,0,0,0)",
         margin: "4px",
