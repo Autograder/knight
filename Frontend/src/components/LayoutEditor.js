@@ -504,7 +504,9 @@ export default function LayoutEditor(props) {
         };
     }
 
-    function loadLayout() {
+    useEffect(() => {
+        if(selectedLayout === '') return;
+
         let layout = layouts[selectedLayout];
 
         clearEditorStates();
@@ -516,7 +518,7 @@ export default function LayoutEditor(props) {
         setRows(newInfo.length);
         setCols(newInfo[0].length);
         setUnsaved(false);
-    }
+    }, [selectedLayout]); // eslint-disable-line react-hooks/exhaustive-deps
     
     function findLayout() {
         let layout;
@@ -550,6 +552,19 @@ export default function LayoutEditor(props) {
         setUnsaved(false);
     }
 
+    useEffect(() => {
+        let oldLayout;
+        for(let i=0; i < props.layouts.length; i++) {
+            if(props.layouts[i].location === location) {
+                oldLayout = i;
+                break;
+            }
+        }
+        if(oldLayout) {
+            setSelectedLayout(oldLayout);
+        }
+    }, [props.layouts]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
     if(props.hidden) {
         return null;
@@ -561,15 +576,12 @@ export default function LayoutEditor(props) {
             <Grid container id="save-system" spacing={2} wrap="nowrap">
                 <Grid item xs={4}>
                     <TextField select
-                        label="Layout"
+                        label="Load"
                         value={selectedLayout}
                         onChange={(e) => setSelectedLayout(e.target.value)}
                     >
                         {layoutsToMenuItems()}
                     </TextField>
-                </Grid>
-                <Grid item xs>
-                    <Button variant="contained" onClick={loadLayout} disabled={selectedLayout === ''}>Load</Button>
                 </Grid>
                 <Grid item xs={4}>
                     <TextField label="Name" value={location} onChange={(e) => setLocation(e.target.value)}/>

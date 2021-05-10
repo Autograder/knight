@@ -25,9 +25,15 @@ export default function SeatAssign(props) {
     const [count, setCount] = useState(0);
     const [seats, setSeats] = useState([]);
 
-    // Assignment states
+    // Assignment state
     const [assignment, setAssignment] = useState({});
+
+    // Save states
     const [assignmentName, setAssignmentName] = useState('');
+    const [unsaved, setUnsaved] = useState(false);
+    const assignments = props.assignments;
+    const updateAssignments = props.updateAssignments;
+    const [selectedAssignment, setSelectedAssignment] = useState('');
 
 
 
@@ -82,43 +88,8 @@ export default function SeatAssign(props) {
             });
     }, []);
 
-    function chooseCourse(course_id) {
-        setSelectedSection('');
-
-        server.getSectionsInCourse(course_id)
-            .then((response) => {
-                let newSections = response.data.result;
-                setSections(newSections);
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-        
-        setSelectedCourse(course_id);
-    }
-
-    function chooseSection(section_id) {
-        setSelectedSection(section_id);
-
-        server.getUsersInSection(selectedCourse, section_id)
-            .then((response) => {
-                let newStudents = [];
-                for(let entry of response.data.result) {
-                    newStudents.push(entry.user_info)
-                }
-
-                setStudents(newStudents);
-                determineSizeError(newStudents.length, count);
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-    }
-
-    function chooseLayout(layout_id) {
-        setSelectedLayout(layout_id);
-
-        let layout = findItemWithID(layout_id, layouts);
+    useEffect(() => {
+        let layout = findItemWithID(selectedLayout, layouts);
         if(layout === null) return;
 
         let newInfo = JSON.parse(layout.seats);
@@ -128,8 +99,33 @@ export default function SeatAssign(props) {
         setCount(layout.count);
 
         setSeats(findSeatsInLayout(newInfo));
-        determineSizeError(students.length, layout.count);
-    }
+    }, [selectedLayout]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        server.getUsersInSection(selectedCourse, selectedSection)
+            .then((response) => {
+                let newStudents = [];
+                for(let entry of response.data.result) {
+                    newStudents.push(entry.user_info)
+                }
+
+                setStudents(newStudents);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }, [selectedSection]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        server.getSectionsInCourse(selectedCourse)
+            .then((response) => {
+                let newSections = response.data.result;
+                setSections(newSections);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }, [selectedCourse]);
 
     function findItemWithID(id, list) {
         let item;
@@ -139,7 +135,6 @@ export default function SeatAssign(props) {
             }
         }
         if(item === undefined) {
-            console.error("id:", id, "could not be found in list:", list);
             return null;
         }
         return item;
@@ -168,30 +163,18 @@ export default function SeatAssign(props) {
         }
     }, [props.layouts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    function determineSizeError(studentCount, layoutSize) {
-        let newSizeError = studentCount > layoutSize;
+    useEffect(() => {
+        let newSizeError = students.length > count;
         if(newSizeError !== sizeError) {
             setSizeError(newSizeError);
         }
-    }
+    }, [students, count]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
     /*
      * Editing
      */
-
-    useEffect(() => {
-        if(seats) {
-            let newAssignment = {};
-            for(let seat of seats) {
-                newAssignment[seat.label] = '';
-            }
-            setAssignment(newAssignment);
-        } else {
-            setAssignment({});
-        }
-    }, [seats, selectedSection]);
     
     function assignmentToEditableItems() {
         let items = [];
@@ -200,6 +183,7 @@ export default function SeatAssign(props) {
             let newAssignment = {...assignment};
             newAssignment[seats[i].label] = e.target.value
             setAssignment(newAssignment);
+            setUnsaved(true);
         }
 
         for(let i=0; i < seats.length; i++) {
@@ -223,13 +207,11 @@ export default function SeatAssign(props) {
     }
     
     function autoAssignSeats() {
-
         /*
          * Get the set of seat clumps
          * A seat clump is a set of adjacent seats
          */
         let seatClumps = [];
-        let totalClumps = 0;
         for(let i=0; i < rows; i++) {
             let clumpsInRowI = [];
 
@@ -243,7 +225,6 @@ export default function SeatAssign(props) {
                         spacing: 3,
                     });
                     currentClump = [];
-                    totalClumps++;
                 }
             }
 
@@ -252,7 +233,6 @@ export default function SeatAssign(props) {
                     clump: currentClump,
                     spacing: 3,
                 });
-                totalClumps++;
             }
 
             if(clumpsInRowI.length > 0) {
@@ -383,7 +363,7 @@ export default function SeatAssign(props) {
                 while(j < clump.length && tempStudents.length > 0) {
                     if(!clump[j].broken) {
                         let student = tempStudents.pop();
-                        newAssignment[clump[j].label] = student.pid;
+                        newAssignment[clump[j].label] = `${student.fname} ${student.lname}`;
                         j += clumpObj.spacing;
                     } else {
                         j += 1;
@@ -394,6 +374,7 @@ export default function SeatAssign(props) {
         }
 
         setAssignment(newAssignment);
+        setUnsaved(true);
     }
 
     
@@ -403,6 +384,18 @@ export default function SeatAssign(props) {
     /*
      * Saving
      */
+
+    function assignmentsToMenuItems() {
+        let menuItems = [];
+
+        for(let i=0; i < assignments.length; i++) {
+            menuItems.push(
+                <MenuItem value={assignments[i].id} key={assignments[i].id}>{assignments[i].assignment_name}</MenuItem>
+            );
+        }
+
+        return menuItems;
+    }
 
     function toJSON() {
         return {
@@ -414,6 +407,60 @@ export default function SeatAssign(props) {
         };
     }
 
+    function findAssignment() {
+        let assignmentData;
+        for(let i=0; i < assignments.length; i++) {
+            if(assignments[i].assignment_name === assignmentName) {
+                assignmentData = assignments[i];
+            }
+        }
+
+        return assignmentData;
+    }
+
+    function saveAssignment() {
+        let assignmentData = findAssignment();
+
+        let func;
+        if(assignmentData) {
+            func = server.updateSeatAssignment;
+        } else {
+            func = server.addSeatAssignment;
+        }
+
+        func(toJSON())
+            .then((response) => {
+                updateAssignments();
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+        
+        setUnsaved(false);
+    }
+
+    useEffect(() => {
+        if(selectedAssignment === '') return;
+
+        let assignmentData = findItemWithID(selectedAssignment, assignments);
+        
+        let newAssignment = JSON.parse(assignmentData.seat_assignments);
+        setAssignment(newAssignment);
+        setAssignmentName(assignmentData.assignment_name);
+
+        setSelectedLayout(assignmentData.layout_id);
+        setSelectedCourse(assignmentData.course_id);
+        setSelectedSection(assignmentData.section_id);
+
+        setUnsaved(false);
+    }, [selectedAssignment]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        let assignmentData = findAssignment();
+        if(assignmentData) {
+            setSelectedAssignment(assignmentData.id);
+        }
+    }, [props.assignments]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
     if(props.hidden) {
@@ -422,13 +469,36 @@ export default function SeatAssign(props) {
     
     return (
         <div className={classes.assignMain}>
+            <Grid container id="save-system" spacing={2} wrap="nowrap">
+                <Grid item xs={4}>
+                    <TextField select
+                        label="Load"
+                        value={selectedAssignment}
+                        onChange={(e) => setSelectedAssignment(e.target.value)}
+                    >
+                        {assignmentsToMenuItems()}
+                    </TextField>
+                </Grid>
+                <Grid item xs={4}>
+                    <TextField label="Name" value={assignmentName} onChange={(e) => setAssignmentName(e.target.value)}/>
+                </Grid>
+                <Grid container spacing={2} item xs wrap="nowrap">
+                    <Grid item>
+                        <Button variant="contained" onClick={saveAssignment}>{findAssignment() ? "Update" : "Save"}</Button>
+                    </Grid>
+                    <Grid item>
+                        {unsaved && <Alert severity="warning">Unsaved work</Alert>}
+                    </Grid>
+                </Grid>
+            </Grid>
+            <br />
             <Grid container spacing={2} direction="column">
                 <Grid item container spacing={2}>
                     <Grid item xs>
                         <TextField select
                             label="Course"
                             value={selectedCourse}
-                            onChange={(e) => chooseCourse(e.target.value)}
+                            onChange={(e) => {setSelectedCourse(e.target.value); setAssignment({}); setSelectedSection(''); setUnsaved(true);}}
                         >
                             {coursesToMenuItems()}
                         </TextField>
@@ -437,7 +507,7 @@ export default function SeatAssign(props) {
                         <TextField select
                             label="Section"
                             value={selectedSection}
-                            onChange={(e) => chooseSection(e.target.value)}
+                            onChange={(e) => {setSelectedSection(e.target.value); setAssignment({}); setUnsaved(true);}}
                             disabled={selectedCourse === ''}
                         >
                             {sectionsToMenuItems()}
@@ -448,7 +518,7 @@ export default function SeatAssign(props) {
                     <TextField select
                         label="Layout"
                         value={selectedLayout}
-                        onChange={(e) => chooseLayout(e.target.value)}
+                        onChange={(e) => {setSelectedLayout(e.target.value); setAssignment({}); setUnsaved(true);}}
                     >
                         {layoutsToMenuItems()}
                     </TextField>

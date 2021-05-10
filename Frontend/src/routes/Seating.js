@@ -13,6 +13,7 @@ export default function Seating() {
 
     const [selectedTab, setSelectedTab] = useState(0);
     const [layouts, setLayouts] = useState([]);
+    const [assignments, setAssignments] = useState([]);
 
     function updateLayouts() {
         server.getLayouts()
@@ -25,8 +26,20 @@ export default function Seating() {
             });
     }
 
+    function updateAssignments() {
+        server.getSeatAssignments()
+            .then((response) => {
+                let newAssignments = response.data.result;
+                setAssignments(newAssignments);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
     useEffect(() => {
         updateLayouts();
+        updateAssignments();
     }, []);
 
     return (
@@ -37,7 +50,7 @@ export default function Seating() {
                     <Tab label="Assign Seats" value={1} />
                 </Tabs>
                 <LayoutEditor hidden={selectedTab !== 0} layouts={layouts} updateLayouts={updateLayouts} />
-                <SeatAssign hidden={selectedTab !== 1} layouts={layouts} />
+                <SeatAssign hidden={selectedTab !== 1} layouts={layouts} assignments={assignments} updateAssignments={updateAssignments}/>
             </ThemeProvider>
         </div>
     );
