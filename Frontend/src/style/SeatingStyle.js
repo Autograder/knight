@@ -22,6 +22,13 @@ const useStyles = makeStyles((theme) => ({
         right: 0,
         backgroundColor: "darkgrey",
     },
+    pdfMain : {
+        position : 'absolute',
+        width : '100%',
+        left: 0,
+        right: 0,
+        backgroundColor: "darkgrey",
+    },
     '@global': {
         '.MuiFormControl-root': {
             width: "100%",
@@ -50,12 +57,6 @@ const useStyles = makeStyles((theme) => ({
     },
     assignEmpty: {
         backgroundColor: "indianred",
-    },
-    assignLeft: {
-        border: "1px solid lightgrey",
-    },
-    assignBroken: {
-        backgroundColor: "firebrick",
     },
     assignBlank: {
         backgroundColor: "rgba(0,0,0,0)",

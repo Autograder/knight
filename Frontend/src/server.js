@@ -30,6 +30,18 @@ const server = {
           return api.get("seating_layout/get_all");
      },
 
+	/* Method name: getLayout
+	 * Author: @james-c-lars
+      * Description: Gets a specific layout
+      * Param: A layout_id and location. Only one needs to be right
+      * Returns:
+      *  { "reason": ..., "result": < A Layout >}
+      */
+     getLayout(layout_id, location) {
+		const params = {layout_id: layout_id, location: location};
+          return api.get("seating_layout/get", {params: params});
+     },
+
 	/* Method name: addLayout
 	 * Author: @james-c-lars
       * Description: Creates a Layout

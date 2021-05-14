@@ -26,14 +26,8 @@ export default function SeatLayout(props) {
                     
                     if(props.assignment[seatInfo.label]) {
                         className += ` ${classes.assignFilled}`;
-                    } else if(seatInfo.broken) {
-                        className += ` ${classes.assignBroken}`;
                     } else {
                         className += ` ${classes.assignEmpty}`;
-                    }
-
-                    if(seatInfo.left) {
-                        className += ` ${classes.assignLeft}`;
                     }
                 }
             } else {
@@ -79,12 +73,12 @@ export default function SeatLayout(props) {
     }
     
     return (
-        <React.Fragment>
+        <div id="seats">
             <div className={classes.frontBanner}>Front</div>
             <Grid container direction="column" wrap="nowrap" alignItems="center" justify="center">
                 {seats2D}
             </Grid>
             <div className={classes.frontBanner}>Back</div>
-        </React.Fragment>
+        </div>
     )
 }
