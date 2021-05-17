@@ -116,17 +116,41 @@ const server = {
           return api.get("section/find_all_in_course", {params: params});
      },
 
-     /* Method name: getUsersInSection
+     /* Method name: getStudentsInSection
 	 * Author: @james-c-lars
-      * Description: Gets all user in a Section
+      * Description: Gets all student users in a Section
       * Param: Course.id, Section.id
       * Returns:
       *  { "reason": ..., "result": < list of the form {"user_info": < User >,
       *             "enrolled_user_info": < EnrolledCourse > } > }
       */
-     getUsersInSection(course_id, section_id) {
-          const params = {course_id: course_id, section_id: section_id};
+     getStudentsInSection(course_id, section_id) {
+          const params = {course_id: course_id, section_id: section_id, roles:"STUDENT"};
           return api.get("enrolled_course/get_user_in_section", {params: params});
+     },
+
+     /* Method name: getCourse
+	 * Author: @james-c-lars
+      * Description: Gets a Course
+      * Param: Course.id
+      * Returns:
+      *  { "reason": ..., "result": < Course > }
+      */
+     getCourse(course_id) {
+          const params = {id: course_id};
+          return api.get("course/find_course_by_id", {params: params});
+     },
+
+     /* Method name: getSection
+	 * Author: @james-c-lars
+      * Description: Gets a Section
+      * Param: Section.id
+      * Returns:
+      *  { "reason": ..., "result": < Section > }
+      */
+     getSection(section_id) {
+          const params = {section_id: section_id};
+          return api.get("section/find_section", {params: params});
      },
 }
 

@@ -1,5 +1,5 @@
 import Styles from "../style/SeatingStyle";
-import { Grid, Box } from "@material-ui/core";
+import { Box } from "@material-ui/core";
 import React from "react";
 
 export default function SeatLayout(props) {
@@ -47,24 +47,23 @@ export default function SeatLayout(props) {
             }
 
             row.push(
-                <Grid item key={`${seatInfo.label} ${i} ${j}`}>
-                    <Box
-                      id={`${i},${j}`}
-                      className={className}
-                      onMouseDown={(event) => handleMouseDown(event, i, j)}
-                      onMouseUp={(event) => handleMouseUp(event, i, j)}
-                      onMouseOver={(event) => handleMouseOver(i,j)}
-                    >
-                        {seatInfo.label}
-                    </Box>
-                </Grid>
+                <Box
+                    id={`${i},${j}`}
+                    key={`${seatInfo.label} ${i} ${j}`}
+                    className={className}
+                    onMouseDown={(event) => handleMouseDown(event, i, j)}
+                    onMouseUp={(event) => handleMouseUp(event, i, j)}
+                    onMouseOver={(event) => handleMouseOver(i,j)}
+                >
+                    {seatInfo.label}
+                </Box>
             );
         }
 
         seats2D.push(
-            <Grid container item key={i} wrap="nowrap">
+            <div style={{display: "inline-flex", flexWrap:"nowrap"}} key={i}>
                 {row}
-            </Grid>
+            </div>
         );
     }
 
@@ -73,11 +72,9 @@ export default function SeatLayout(props) {
     }
     
     return (
-        <div id="seats">
+        <div id="seats" style={{display: "inline-flex", flexFlow: "column nowrap"}}>
             <div className={classes.frontBanner}>Front</div>
-            <Grid container direction="column" wrap="nowrap" alignItems="center" justify="center">
-                {seats2D}
-            </Grid>
+            {seats2D}
             <div className={classes.frontBanner}>Back</div>
         </div>
     )

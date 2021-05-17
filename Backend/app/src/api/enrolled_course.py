@@ -155,15 +155,25 @@ def get_user_in_section():
     cid = request.args.get('course_id', type=int)
     ecs = EnrolledCourse.find_all_user_in_section(course_id=cid,
                                                   section_id=sid)
-    i = 0
+
+    roles = request.args.get('roles', default=None, type=str)
+
+    if roles:
+        roles = set(roles.split(';'))
+
     ret = []
+
     for ec in ecs:
+        if roles and Role(ec.role).name not in roles:
+            continue
+
         user = User.get_user_by_id(ec.user_id)
-        i += 1
+
         scr = {}
         scr['user_info'] = user.to_json()
         scr['enrolled_user_info'] = ec.to_json()
         ret.append(scr)
+
     return jsonify({'reason': 'success', 'result': ret}), 200
 
 

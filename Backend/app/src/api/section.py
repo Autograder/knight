@@ -36,3 +36,16 @@ def find_all_in_course():
 
     return jsonify({'reason': 'sections returned', \
         'result': list(s)}), 200
+
+@section_api_bp.route('/find_section', methods=['GET'])
+def find_section():
+    """
+    Route used to find a sections by id.\n
+    @author james-c-lars
+    """
+
+    section_id = request.args.get('section_id', type=int)
+    section = Section.find_by_db_id(section_id)
+
+    return jsonify({'reason': 'sections returned', \
+        'result': section.to_json()}), 200

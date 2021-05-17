@@ -102,7 +102,7 @@ export default function SeatAssign(props) {
     }, [selectedLayout]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        server.getUsersInSection(selectedCourse, selectedSection)
+        server.getStudentsInSection(selectedCourse, selectedSection)
             .then((response) => {
                 let newStudents = [];
                 for(let entry of response.data.result) {
@@ -363,7 +363,7 @@ export default function SeatAssign(props) {
                 while(j < clump.length && tempStudents.length > 0) {
                     if(!clump[j].broken) {
                         let student = tempStudents.pop();
-                        newAssignment[clump[j].label] = `${student.fname} ${student.lname}`;
+                        newAssignment[clump[j].label] = `${student.lname}, ${student.fname}`;
                         j += clumpObj.spacing;
                     } else {
                         j += 1;
