@@ -27,6 +27,7 @@ export default function SeatAssign(props) {
 
     // Assignment state
     const [assignment, setAssignment] = useState({});
+    const [selectedSeat, setSelectedSeat] = useState(0);
 
     // Save states
     const [assignmentName, setAssignmentName] = useState('');
@@ -151,7 +152,7 @@ export default function SeatAssign(props) {
             }
         }
 
-        return newSeats;
+        return newSeats.sort((a,b) => a.label>b.label);
     }
 
     useEffect(() => {
@@ -175,35 +176,102 @@ export default function SeatAssign(props) {
     /*
      * Editing
      */
-    
-    function assignmentToEditableItems() {
-        let items = [];
 
-        function changeValue(e, i) {
+    function selectedSeatToEditableItem() {
+        if(seats.length <= selectedSeat) return null;
+
+        function changeValue(e) {
             let newAssignment = {...assignment};
-            newAssignment[seats[i].label] = e.target.value
+            if(e.target.value === '') {
+                delete newAssignment[seats[selectedSeat].label];
+            } else {
+                newAssignment[seats[selectedSeat].label] = {
+                    name: e.target.value,
+                    pid: getPIDFromName(e.target.value)
+                };
+            }
             setAssignment(newAssignment);
             setUnsaved(true);
         }
 
-        for(let i=0; i < seats.length; i++) {
-            items.push(
-                <Grid item key={seats[i].label}>
-                    <TextField
-                        label={`${seats[i].label}${seats[i].broken ? ' (B)' : seats[i].left ? ' (L)' : ''}`}
-                        disabled={seats[i].broken}
-                        value={assignment[seats[i].label] ? assignment[seats[i].label] : ''}
-                        onChange={(e) => {changeValue(e,i)}}
-                    />
-                </Grid> 
+        return (
+            <Grid item key={seats[selectedSeat].label}>
+                Selected seat: {seats[selectedSeat].label}
+                <TextField
+                    label={`${seats[selectedSeat].label}${seats[selectedSeat].broken ? ' (B)' : seats[selectedSeat].left ? ' (L)' : ''}`}
+                    disabled={seats[selectedSeat].broken}
+                    value={assignment[seats[selectedSeat].label] ? assignment[seats[selectedSeat].label].name : ''}
+                    error={assignment[seats[selectedSeat].label] && assignment[seats[selectedSeat].label].pid === undefined}
+                    onChange={(e) => {changeValue(e)}}
+                />
+            </Grid> 
+        )
+    }
+
+    function chooseSeat(event, i, j) {
+        let seat = seatInfo[i][j];
+
+        if(!seat.label) return;
+
+        let x;
+        for(x=0; x < seats.length; x++) {
+            if(seats[x].label === seat.label) {
+                break;
+            }
+        }
+
+        if(x >= seats.length) {
+            console.error("Could not find seat:", seat, "in:", seats);
+        }
+        setSelectedSeat(x);
+    }
+
+    function getPIDFromName(name) {
+        let [lname, fname] = name.split(', ');
+        let match;
+        for(let student of students) {
+            if(student.lname === lname && student.fname === fname) {
+                match = student;
+                break;
+            }
+        }
+        if(match) return match.pid;
+    }
+
+    function unassignedStudents() {
+        if(students.length === 0) return null;
+
+        let unassignedItems = [];
+
+        let assignedPIDs = new Set();
+        for(let seat of Object.keys(assignment)) {
+            assignedPIDs.add(assignment[seat].pid);
+        }
+
+        let unassigned = [...students];
+        let i=0;
+        while(i < unassigned.length) {
+            if(assignedPIDs.has(unassigned[i].pid)) {
+                unassigned.splice(i, 1);
+            } else {
+                i++;
+            }
+        }
+
+        for(let student of unassigned) {
+            unassignedItems.push(
+                <Grid item key={student.pid}>
+                    {`${student.lname}, ${student.fname}`}
+                </Grid>
             );
         }
 
         return (
-            <Grid container spacing={2} direction="row">
-                {items}
+            <Grid item container spacing={2} direction="column">
+                <u>Unassigned Students</u>
+                {unassignedItems}
             </Grid>
-        );
+        )
     }
     
     function autoAssignSeats() {
@@ -363,7 +431,10 @@ export default function SeatAssign(props) {
                 while(j < clump.length && tempStudents.length > 0) {
                     if(!clump[j].broken) {
                         let student = tempStudents.pop();
-                        newAssignment[clump[j].label] = `${student.lname}, ${student.fname}`;
+                        newAssignment[clump[j].label] = {
+                            name: `${student.lname}, ${student.fname}`,
+                            pid: student.pid
+                        };
                         j += clumpObj.spacing;
                     } else {
                         j += 1;
@@ -543,9 +614,14 @@ export default function SeatAssign(props) {
                 hidden={!seatInfo || selectedLayout === ''}
                 rows={rows} cols={cols} assignment={assignment}
                 seatInfo={seatInfo}
+                handleMouseDown={chooseSeat}
             />
-            <br />
-            {assignmentToEditableItems()}
+            <br /><br />
+            <Grid container spacing={2} wrap="nowrap">
+                {selectedSeatToEditableItem()}
+                {unassignedStudents()}
+            </Grid>
+            <br /><br />
         </div>
     );
 }

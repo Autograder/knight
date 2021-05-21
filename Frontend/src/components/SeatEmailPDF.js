@@ -1,13 +1,13 @@
 import Styles from "../style/SeatingStyle";
-import { Grid, TextField, MenuItem, Button } from "@material-ui/core";
-import {  } from '@material-ui/lab';
+import { Grid, TextField, MenuItem, Button, Dialog, DialogActions, DialogTitle, DialogContent, DialogContentText } from "@material-ui/core";
+import { Alert } from '@material-ui/lab';
 import React, { useState, useEffect } from "react";
 import SeatLayout from "../components/SeatLayout";
-import server, {  } from "../server";
+import server from "../server";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
-export default function SeatPDF(props) {
+export default function SeatEmailPDF(props) {
     const classes = Styles.useStyles();
 
     const assignments = props.assignments;
@@ -19,6 +19,8 @@ export default function SeatPDF(props) {
     const [rows, setRows] = useState(0);
     const [cols, setCols] = useState(0);
     const [title, setTitle] = useState('');
+    const [sentEmails, setSentEmails] = useState(false);
+    const [open, setOpen] = useState(false); // For the email confirmation dialog
 
 
     function assignmentsToMenuItems() {
@@ -54,6 +56,8 @@ export default function SeatPDF(props) {
 
     useEffect(() => {
         if(assignment === null) return;
+
+        setSentEmails(false);
 
         let newAssignment = JSON.parse(assignment.seat_assignments);
         setSeatAssignment(newAssignment);
@@ -111,7 +115,7 @@ export default function SeatPDF(props) {
     function createStudentsPDF() {
         // These seats are ordered by alphabetical student names
         let nameOrderedSeats = Object.keys(seatAssignment).sort((a,b) => {
-            return seatAssignment[a] < seatAssignment[b];
+            return seatAssignment[a].name < seatAssignment[b].name;
         });
         // let nameOrderedSeats = [];
         // for(let i=0; i < 100; i++) {
@@ -154,7 +158,7 @@ export default function SeatPDF(props) {
             text = '';
             for(let i=0; i < linesPerPage; i++) {
                 let seat = orderedSeats.pop();
-                text += `______ ${seatAssignment[seat]} - ${seat}\n`;
+                text += `______ ${seatAssignment[seat].name} - ${seat}\n`;
                 if(orderedSeats.length === 0) {
                     break;
                 }
@@ -169,7 +173,7 @@ export default function SeatPDF(props) {
             text = '';
             for(let i=0; i < linesPerPage; i++) {
                 let seat = orderedSeats.pop();
-                text += `______ ${seatAssignment[seat]} - ${seat}\n`;
+                text += `______ ${seatAssignment[seat].name} - ${seat}\n`;
                 if(orderedSeats.length === 0) {
                     break;
                 }
@@ -186,6 +190,10 @@ export default function SeatPDF(props) {
         pdf.save(`${saveName}.pdf`);
     }
 
+    function sendEmails() {
+        setSentEmails(true);
+    }
+
 
     if(props.hidden) {
         return null;
@@ -200,6 +208,7 @@ export default function SeatPDF(props) {
             >
                 {assignmentsToMenuItems()}
             </TextField>
+            <br/><br/>
             <Grid container spacing={2}>
                 <Grid item>
                     <Button variant="contained" disabled={rows === 0} onClick={createSeatsPDF}>Seats PDF</Button>
@@ -211,11 +220,40 @@ export default function SeatPDF(props) {
                     <Button variant="contained" disabled={rows === 0} onClick={createTutorsPDF}>Tutors PDF</Button>
                 </Grid>
             </Grid>
+            <br/>
+            <Grid container spacing={2} wrap="nowrap">
+                <Grid item>
+                    <Button variant="contained" disabled={sentEmails || rows === 0} onClick={() => setOpen(true)}>Send Emails</Button>
+                </Grid>
+                <Grid item>
+                    {sentEmails && <Alert severity="success">Emails have been sent</Alert>}
+                </Grid>
+            </Grid>
+            <br/>
             <SeatLayout
                 hidden={rows === 0}
                 rows={rows} cols={cols} assignment={seatAssignment}
                 seatInfo={seatInfo}
             />
+            <Dialog
+                open={open}
+                onClose={() => setOpen(false)}
+            >
+                <DialogTitle style={{color:"black"}}>Send an email to every student?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText style={{color:"grey"}}>
+                        Send an email notifying every student assigned a seat what their seat is.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpen(false)} style={{color:"darkblue"}} size="large">
+                        No
+                    </Button>
+                    <Button onClick={() => {setOpen(false); sendEmails();}} style={{color:"darkblue"}} size="large">
+                        Yes
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

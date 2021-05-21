@@ -5,7 +5,7 @@ import { Tabs, Tab } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import LayoutEditor from "../components/LayoutEditor";
 import SeatAssign from "../components/SeatAssign";
-import SeatPDF from "../components/SeatPDF";
+import SeatEmailPDF from "../components/SeatEmailPDF";
 import server from "../server"
 
 export default function Seating() {
@@ -49,11 +49,11 @@ export default function Seating() {
                 <Tabs value={selectedTab} onChange={(e, v) => setSelectedTab(v)}>
                     <Tab label="Layout Editor" value={0} />
                     <Tab label="Assign Seats" value={1} />
-                    <Tab label="Create PDF" value={2} />
+                    <Tab label="Emails/PDF" value={2} />
                 </Tabs>
                 <LayoutEditor hidden={selectedTab !== 0} layouts={layouts} updateLayouts={updateLayouts} />
                 <SeatAssign hidden={selectedTab !== 1} layouts={layouts} assignments={assignments} updateAssignments={updateAssignments}/>
-                <SeatPDF hidden={selectedTab !== 2} layouts={layouts} assignments={assignments}/>
+                <SeatEmailPDF hidden={selectedTab !== 2} layouts={layouts} assignments={assignments}/>
             </ThemeProvider>
         </div>
     );
