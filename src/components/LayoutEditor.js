@@ -4,7 +4,6 @@ import { ToggleButton, ToggleButtonGroup, Alert } from '@material-ui/lab';
 import React, { useState, useEffect } from "react";
 import SeatLayout from "./SeatLayout";
 import server from "../server"
-// 1
 
 let initSeatInfo = [];
 for(let i=0; i < 15; i++) {
