@@ -152,6 +152,18 @@ const server = {
           const params = {section_id: section_id};
           return api.get("section/find_section", {params: params});
      },
+
+     /* Method name: sendEmails
+	 * Author: @james-c-lars
+      * Description: Sends emails to students in assignment
+      * Param: assignmentName
+      * Returns:
+      *  { "reason": ... }
+      */
+     sendEmails(assignmentName) {
+          const params = {assignment_name: assignmentName};
+          return api.get("assigned_seats/email_all_in_assignment", {params: params});
+     },
 }
 
 export default server;

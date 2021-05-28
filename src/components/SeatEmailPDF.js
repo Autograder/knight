@@ -192,6 +192,7 @@ export default function SeatEmailPDF(props) {
 
     function sendEmails() {
         setSentEmails(true);
+        server.sendEmails(assignment.assignment_name)
     }
 
 
