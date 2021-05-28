@@ -8,32 +8,52 @@ import server from "../server";
 export default function SeatAssign(props) {
     const classes = Styles.useStyles();
 
-    // Selection states
-    const [sections, setSections] = useState([]);
-    const [selectedSection, setSelectedSection] = useState('');
+    // SELECTION STATES
+    // An array of courses
     const [courses, setCourses] = useState([]);
+    // The course id of the course chosen via the dropdown menu
     const [selectedCourse, setSelectedCourse] = useState('');
-    const [selectedLayout, setSelectedLayout] = useState('');
+    // An array of the sections in the chosen course
+    const [sections, setSections] = useState([]);
+    // The section id of the section chosen via the dropdown menu
+    const [selectedSection, setSelectedSection] = useState('');
+    // An array of layouts inherited from the Seating page
     const layouts = props.layouts;
+    // The layout id of the layout chosen via the dropdown menu
+    const [selectedLayout, setSelectedLayout] = useState('');
+    // An array of students in the chosen section
     const [students, setStudents] = useState([]);
+    // Represents whether there are too many students for the given layout
     const [sizeError, setSizeError] = useState(false);
 
-    // Layout states
+    // LAYOUT STATES
+    // A 2D array of seats in the chosen layout
     const [seatInfo, setSeatInfo] = useState([]);
+    // The number of rows of seatInfo
     const [rows, setRows] = useState(0);
+    // The number of columns of seatInfo
     const [cols, setCols] = useState(0);
+    // The total number of non-broken seats in the layout
     const [count, setCount] = useState(0);
+    // An array containing the non-broken seats in the layout
     const [seats, setSeats] = useState([]);
 
-    // Assignment state
+    // ASSIGNMENT STATES
+    // The seat assignment object being generated
     const [assignment, setAssignment] = useState({});
+    // The seat selected that's being editted
     const [selectedSeat, setSelectedSeat] = useState(0);
 
-    // Save states
+    // SAVE STATES
+    // The name given to the assignment
     const [assignmentName, setAssignmentName] = useState('');
+    // Whether the assignment has been saved to the database
     const [unsaved, setUnsaved] = useState(false);
+    // An array of assignments inherited from the Seating page
     const assignments = props.assignments;
+    // A callback function for when we want the Seating page to update the array of assignments
     const updateAssignments = props.updateAssignments;
+    // The assignment we've loaded
     const [selectedAssignment, setSelectedAssignment] = useState('');
 
 
@@ -42,6 +62,7 @@ export default function SeatAssign(props) {
      * Selection Menu
      */
 
+    // Takes the layouts array and makes it into MenuItems
     function layoutsToMenuItems() {
         let menuItems = [];
 
@@ -54,6 +75,7 @@ export default function SeatAssign(props) {
         return menuItems;
     }
 
+    // Takes the courses array and makes it into MenuItems
     function coursesToMenuItems() {
         let menuItems = [];
 
@@ -66,6 +88,7 @@ export default function SeatAssign(props) {
         return menuItems;
     }
 
+    // Takes the sections array and makes it into MenuItems
     function sectionsToMenuItems() {
         let menuItems = [];
 
@@ -78,6 +101,7 @@ export default function SeatAssign(props) {
         return menuItems;
     }
 
+    // When the page first loads we want to get a list of courses from the database
     useEffect(() => {
         server.getCourses()
             .then((response) => {
@@ -89,6 +113,7 @@ export default function SeatAssign(props) {
             });
     }, []);
 
+    // When we choose a different layout, we want to update the corresponding state values
     useEffect(() => {
         let layout = findItemWithID(selectedLayout, layouts);
         if(layout === null) return;
@@ -102,10 +127,13 @@ export default function SeatAssign(props) {
         setSeats(findSeatsInLayout(newInfo));
     }, [selectedLayout]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // When a section is chosen we want to query the database for the students in the section
     useEffect(() => {
         server.getStudentsInSection(selectedCourse, selectedSection)
             .then((response) => {
                 let newStudents = [];
+                // The response from the server will have both the User data and the EnrolledCourse data
+                // We just need the User data
                 for(let entry of response.data.result) {
                     newStudents.push(entry.user_info)
                 }
@@ -117,6 +145,7 @@ export default function SeatAssign(props) {
             });
     }, [selectedSection]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // When a course is chosen we want to update the list of sections you can select
     useEffect(() => {
         server.getSectionsInCourse(selectedCourse)
             .then((response) => {
@@ -128,6 +157,7 @@ export default function SeatAssign(props) {
             });
     }, [selectedCourse]);
 
+    // A generic helper function that finds an item in a list with a given id
     function findItemWithID(id, list) {
         let item;
         for(let x of list) {
@@ -141,20 +171,25 @@ export default function SeatAssign(props) {
         return item;
     }
 
+    // Here we scan through newInfo to create an array of seats
+    // This is because newInfo will also include blank spaces and is in a 2D format
     function findSeatsInLayout(newInfo) {
         let newSeats = [];
 
         for(let i=0; i < newInfo.length; i++) {
             for(let j=0; j < newInfo[0].length; j++) {
+                // If the seat has a label it isn't a blank space
                 if(newInfo[i][j].label) {
                     newSeats.push(newInfo[i][j]);
                 }
             }
         }
 
+        // We can quickly sort the seats to be alphabetical
         return newSeats.sort((a,b) => a.label>b.label);
     }
 
+    // Whenever our layouts prop updates we want to try and keep the correct layout selected
     useEffect(() => {
         if(selectedLayout === '') return;
 
@@ -164,6 +199,8 @@ export default function SeatAssign(props) {
         }
     }, [props.layouts]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // If our array of students or if the number of seats in the layout changes we want
+    //     to make sure that we're correctly calculating whether there's a sizeError
     useEffect(() => {
         let newSizeError = students.length > count;
         if(newSizeError !== sizeError) {
@@ -177,19 +214,27 @@ export default function SeatAssign(props) {
      * Editing
      */
 
+    // This creates the TextField which can edit the selected seat which has been clicked on
     function selectedSeatToEditableItem() {
+        // If the selected seat is out of scope don't create a TextField
         if(seats.length <= selectedSeat) return null;
 
+        // This function will be called when the user enters a new value
         function changeValue(e) {
             let newAssignment = {...assignment};
+            // If the name entered is blank we want to remove the seat assignment rather than leave it blank
             if(e.target.value === '') {
                 delete newAssignment[seats[selectedSeat].label];
             } else {
+                // We want to save the name as well as the PDF
+                // The name will be displayed on this subpage
+                // The PID will be used when we want to send out emails
                 newAssignment[seats[selectedSeat].label] = {
                     name: e.target.value,
                     pid: getPIDFromName(e.target.value)
                 };
             }
+            // Updating the seat assignment dictionary
             setAssignment(newAssignment);
             setUnsaved(true);
         }
@@ -197,6 +242,11 @@ export default function SeatAssign(props) {
         return (
             <Grid item key={seats[selectedSeat].label}>
                 Selected seat: {seats[selectedSeat].label}
+                {/* We add some extra functionality here.
+                Broken seats have a (B), left handed seats have an (L).
+                If the chosen seat is broken we want to disable the ability to assign a student to it.
+                If the entered name doesn't correspond to a student in the students array,
+                    then alert the user with error styling */}
                 <TextField
                     label={`${seats[selectedSeat].label}${seats[selectedSeat].broken ? ' (B)' : seats[selectedSeat].left ? ' (L)' : ''}`}
                     disabled={seats[selectedSeat].broken}
@@ -208,11 +258,13 @@ export default function SeatAssign(props) {
         )
     }
 
+    // This is called when the user clicks on a seat in the SeatLayout
     function chooseSeat(event, i, j) {
         let seat = seatInfo[i][j];
 
         if(!seat.label) return;
 
+        // Find the index of the seat in the seats array
         let x;
         for(x=0; x < seats.length; x++) {
             if(seats[x].label === seat.label) {
@@ -226,6 +278,7 @@ export default function SeatAssign(props) {
         setSelectedSeat(x);
     }
 
+    // Does what the name says. A helper function for the selectedSeatToEditableItem function
     function getPIDFromName(name) {
         let [lname, fname] = name.split(', ');
         let match;
@@ -238,17 +291,24 @@ export default function SeatAssign(props) {
         if(match) return match.pid;
     }
 
+    // Finds students in the students array who haven't been assigned a seat yet
+    // It creates list of them that we can display to the user
     function unassignedStudents() {
         if(students.length === 0) return null;
 
         let unassignedItems = [];
 
+        // First we create a set of student's PIDs who have been assigned
         let assignedPIDs = new Set();
         for(let seat of Object.keys(assignment)) {
             assignedPIDs.add(assignment[seat].pid);
         }
 
+        // We copy the students array into an unassigned array
         let unassigned = [...students];
+
+        // We iterate through the unassigned array and remove anyone whose PID
+        //    is in the assignedPIDs Set
         let i=0;
         while(i < unassigned.length) {
             if(assignedPIDs.has(unassigned[i].pid)) {
@@ -258,6 +318,7 @@ export default function SeatAssign(props) {
             }
         }
 
+        // For every student left in the unassigned array we add them to the React
         for(let student of unassigned) {
             unassignedItems.push(
                 <Grid item key={student.pid}>
@@ -273,29 +334,50 @@ export default function SeatAssign(props) {
             </Grid>
         )
     }
-    
+
+    // The meat of this page, this is the logic for how to assign an array of students to 
+    //     a given layout.
+    // Currently left handed seats aren't treated any differently from right handed seats
+    // One way to implement treating the seats differently would be to assign left handed students
+    //     to the left handed seats first, and then treat the left handed seats like aisle seats
+    //     while assigning right handed students below
+    // This is currently how seats are assigned:
+    //     Seats are broken up into "clumps" where a clump is a set of touching seats in a row
+    //     We see if we can fit all the students into the layout with 2 seats between them all
+    //     While we don't have enough space to fit the students we will condense down the students in a given clump
+    //          We will start with clumps that are front and center, and work our way back
+    //     Once we have condensed clumps enough to fit all the students we will randomize the array of students
+    //     We will iterate through the randomized list and assign students one at a time to the clumps
+    //     The students will be spaced using the spacing calculated earlier for that particular clump
     function autoAssignSeats() {
         /*
          * Get the set of seat clumps
          * A seat clump is a set of adjacent seats
          */
         let seatClumps = [];
+        // Iterate through the rows of the 2D seat array
         for(let i=0; i < rows; i++) {
             let clumpsInRowI = [];
 
             let currentClump = [];
+            // Iterate through the seats in the row
             for(let j=0; j < cols; j++) {
+                // If the seat is not an aisle
                 if(seatInfo[i][j].label) {
+                    // Add it to the current clump
                     currentClump.push(seatInfo[i][j]);
                 } else if (currentClump.length > 0) {
+                    // Else if the clump has ended, push it to the clumpsInRowI
                     clumpsInRowI.push({
                         clump: currentClump,
                         spacing: 3,
                     });
                     currentClump = [];
                 }
+                // If the seat is an aisle but isn't the end of a clump, don't do anything
             }
 
+            // Finally push any remaining clump in the row
             if(currentClump.length > 0) {
                 clumpsInRowI.push({
                     clump: currentClump,
@@ -303,22 +385,23 @@ export default function SeatAssign(props) {
                 });
             }
 
+            // Push the array of clumps in the row to the overall clump 2D array
             if(clumpsInRowI.length > 0) {
                 seatClumps.push(clumpsInRowI);
             }
         }
 
         // ==================================================
-        // Remove this once we have an actual set of students
-        let students = [];
-        for(let i=0; i < 35; i++) {
-            students.push({
-                fname: "Student",
-                lname: String(i),
-                pid: `A156${13+i}`,
-                email: `s${i}@ucsd.edu`,
-            });
-        }
+        // The code below is used for testing and simulates a number of students
+        // let students = [];
+        // for(let i=0; i < 35; i++) {
+        //     students.push({
+        //         fname: "Student",
+        //         lname: String(i),
+        //         pid: `A156${13+i}`,
+        //         email: `s${i}@ucsd.edu`,
+        //     });
+        // }
         // ==================================================
 
         /*
@@ -456,6 +539,7 @@ export default function SeatAssign(props) {
      * Saving
      */
 
+    // Makes the array of assignments into MenuItems
     function assignmentsToMenuItems() {
         let menuItems = [];
 
@@ -468,6 +552,7 @@ export default function SeatAssign(props) {
         return menuItems;
     }
 
+    // Converts the current assignment into a JSON
     function toJSON() {
         return {
             assignment_name: assignmentName,
@@ -478,6 +563,7 @@ export default function SeatAssign(props) {
         };
     }
 
+    // Finds an assignment in the assignments list
     function findAssignment() {
         let assignmentData;
         for(let i=0; i < assignments.length; i++) {
@@ -489,9 +575,12 @@ export default function SeatAssign(props) {
         return assignmentData;
     }
 
+    // Saves the current assignment to the database
     function saveAssignment() {
         let assignmentData = findAssignment();
 
+        // We want to update the assignment if it already exists
+        // And add the assignment if not
         let func;
         if(assignmentData) {
             func = server.updateSeatAssignment;
@@ -510,6 +599,7 @@ export default function SeatAssign(props) {
         setUnsaved(false);
     }
 
+    // When you load an assignment using the dropdown menu we want to update the corresponding values
     useEffect(() => {
         if(selectedAssignment === '') return;
 
@@ -526,6 +616,7 @@ export default function SeatAssign(props) {
         setUnsaved(false);
     }, [selectedAssignment]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // When the assignments props gets updated we need to update the selectedAssignment
     useEffect(() => {
         let assignmentData = findAssignment();
         if(assignmentData) {
@@ -534,26 +625,32 @@ export default function SeatAssign(props) {
     }, [props.assignments]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
+    // If passed a hidden prop, return null
     if(props.hidden) {
         return null;
     }
     
     return (
         <div className={classes.assignMain}>
+            {/* This is the save system with saving, loading, and changing the assignmentName */}
             <Grid container id="save-system" spacing={2} wrap="nowrap">
                 <Grid item xs={4}>
+                    {/* Loading dropdown */}
                     <TextField select
                         label="Load"
                         value={selectedAssignment}
                         onChange={(e) => setSelectedAssignment(e.target.value)}
                     >
+                        {/* The MenuItems are generated dynamically with this function */}
                         {assignmentsToMenuItems()}
                     </TextField>
                 </Grid>
                 <Grid item xs={4}>
+                    {/* Name TextField */}
                     <TextField label="Name" value={assignmentName} onChange={(e) => setAssignmentName(e.target.value)}/>
                 </Grid>
                 <Grid container spacing={2} item xs wrap="nowrap">
+                    {/* Save Button + the unsaved work alert */}
                     <Grid item>
                         <Button variant="contained" onClick={saveAssignment}>{findAssignment() ? "Update" : "Save"}</Button>
                     </Grid>
@@ -563,17 +660,24 @@ export default function SeatAssign(props) {
                 </Grid>
             </Grid>
             <br />
+
+            {/* The dropdown menus for the course, section, and layout selection + the auto assign button */}
             <Grid container spacing={2} direction="column">
+
                 <Grid item container spacing={2}>
+                    {/* Course dropdown */}
                     <Grid item xs>
                         <TextField select
                             label="Course"
                             value={selectedCourse}
                             onChange={(e) => {setSelectedCourse(e.target.value); setAssignment({}); setSelectedSection(''); setUnsaved(true);}}
                         >
+                            {/* The MenuItems are generated dynamically with this function */}
                             {coursesToMenuItems()}
                         </TextField>
                     </Grid>
+
+                    {/* Section dropdown */}
                     <Grid item xs>
                         <TextField select
                             label="Section"
@@ -581,19 +685,25 @@ export default function SeatAssign(props) {
                             onChange={(e) => {setSelectedSection(e.target.value); setAssignment({}); setUnsaved(true);}}
                             disabled={selectedCourse === ''}
                         >
+                            {/* The MenuItems are generated dynamically with this function */}
                             {sectionsToMenuItems()}
                         </TextField>
                     </Grid>
                 </Grid>
+
+                {/* Layout dropdown */}
                 <Grid item>
                     <TextField select
                         label="Layout"
                         value={selectedLayout}
                         onChange={(e) => {setSelectedLayout(e.target.value); setAssignment({}); setUnsaved(true);}}
                     >
+                        {/* The MenuItems are generated dynamically with this function */}
                         {layoutsToMenuItems()}
                     </TextField>
                 </Grid>
+
+                {/* Auto assign Button */}
                 <Grid container spacing={2} item wrap="nowrap">
                     <Grid item>
                         <Button
@@ -610,6 +720,8 @@ export default function SeatAssign(props) {
                 </Grid>
             </Grid>
             <br />
+
+            {/* The seat display */}
             <SeatLayout
                 hidden={!seatInfo || selectedLayout === ''}
                 rows={rows} cols={cols} assignment={assignment}
@@ -617,6 +729,8 @@ export default function SeatAssign(props) {
                 handleMouseDown={chooseSeat}
             />
             <br /><br />
+
+            {/* The TextField for manual editing + the list of unassigned students */}
             <Grid container spacing={2} wrap="nowrap">
                 {selectedSeatToEditableItem()}
                 {unassignedStudents()}
